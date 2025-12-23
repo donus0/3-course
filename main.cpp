@@ -1,6 +1,7 @@
 #include "visualizer.h"
 #include "random_variable.h"
 #include "random_walk_visualizer.h"
+#include "laplace_function.h"
 #include <iostream>
 #include <limits>
 #include <windows.h>
@@ -8,6 +9,9 @@
 #include <set>
 #include <fstream>
 #include <string>
+#include <cmath>
+#include <iomanip>
+#include <vector>
 
 
 std::vector<std::pair<double, double>> readDistributionFromStdin() {
@@ -337,6 +341,94 @@ void demonstrateTask2() {
 	std::cout << "\n=== Задание 2 завершено ===\n";
 }
 
+void demonstrateTask3() {
+	std::cout << "=== Задание 3: Вычисление интегральной функции Лапласа ===\n\n";
+	
+	// Ввод параметров
+	double x = 0.0;
+	int n = 1000; // Количество разбиений по умолчанию
+	
+	std::cout << "Введите значение аргумента x: ";
+	if (!(std::cin >> x)) {
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		std::cerr << "Некорректный ввод, используется x = 0.0\n";
+		x = 0.0;
+	}
+	
+	std::cout << "Введите количество разбиений n (по умолчанию 1000): ";
+	std::string input;
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	std::getline(std::cin, input);
+	if (!input.empty()) {
+		try {
+			int inputN = std::stoi(input);
+			if (inputN > 0) {
+				n = inputN;
+			} else {
+				std::cerr << "Количество разбиений должно быть положительным, используется n = 1000\n";
+			}
+		} catch (...) {
+			std::cerr << "Некорректный ввод, используется n = 1000\n";
+		}
+	}
+	
+	std::cout << "\n=== Результаты вычислений ===\n";
+	std::cout << "Параметры:\n";
+	std::cout << "  x = " << x << "\n";
+	std::cout << "  n = " << n << "\n\n";
+	
+	// Вычисление методом прямоугольников
+	double resultRect = laplaceFunction(x, n, false);
+	std::cout << "Метод прямоугольников:\n";
+	std::cout << "  Φ(" << x << ") = " << std::fixed << std::setprecision(10) << resultRect << "\n\n";
+	
+	// Вычисление методом трапеций
+	double resultTrap = laplaceFunction(x, n, true);
+	std::cout << "Метод трапеций:\n";
+	std::cout << "  Φ(" << x << ") = " << std::fixed << std::setprecision(10) << resultTrap << "\n\n";
+	
+	// Сравнение результатов
+	double difference = std::abs(resultRect - resultTrap);
+	std::cout << "Разница между методами: " << std::scientific << std::setprecision(6) << difference << "\n\n";
+	
+	// Демонстрация для нескольких значений
+	std::cout << "=== Таблица значений для различных x ===\n";
+	std::cout << std::fixed << std::setprecision(6);
+	std::cout << std::setw(10) << "x" << std::setw(20) << "Метод прям." << std::setw(20) << "Метод трап." << std::setw(20) << "Разница" << "\n";
+	std::cout << std::string(70, '-') << "\n";
+	
+	std::vector<double> testValues = {-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0};
+	for (double testX : testValues) {
+		double rect = laplaceFunction(testX, n, false);
+		double trap = laplaceFunction(testX, n, true);
+		double diff = std::abs(rect - trap);
+		std::cout << std::setw(10) << testX 
+		          << std::setw(20) << std::setprecision(10) << rect
+		          << std::setw(20) << trap
+		          << std::setw(20) << std::scientific << std::setprecision(6) << diff << "\n";
+	}
+	
+	// Исследование сходимости
+	std::cout << "\n=== Исследование сходимости (x = " << x << ") ===\n";
+	std::cout << std::fixed << std::setprecision(6);
+	std::cout << std::setw(10) << "n" << std::setw(20) << "Метод прям." << std::setw(20) << "Метод трап." << std::setw(20) << "Разница" << "\n";
+	std::cout << std::string(70, '-') << "\n";
+	
+	std::vector<int> testN = {10, 50, 100, 500, 1000, 5000, 10000};
+	for (int testNVal : testN) {
+		double rect = laplaceFunction(x, testNVal, false);
+		double trap = laplaceFunction(x, testNVal, true);
+		double diff = std::abs(rect - trap);
+		std::cout << std::setw(10) << testNVal 
+		          << std::setw(20) << std::setprecision(10) << rect
+		          << std::setw(20) << trap
+		          << std::setw(20) << std::scientific << std::setprecision(6) << diff << "\n";
+	}
+	
+	std::cout << "\n=== Задание 3 завершено ===\n";
+}
+
 int main(int argc, char** argv) {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -348,6 +440,7 @@ int main(int argc, char** argv) {
 		std::cerr << "  " << argv[0] << " 1.1  - Демонстрация функционала DiscreteRandomVariable\n";
 		std::cerr << "  " << argv[0] << " 1.2  - Визуализация ДСВ через OpenGL\n";
 		std::cerr << "  " << argv[0] << " 2    - Моделирование случайного блуждания\n";
+		std::cerr << "  " << argv[0] << " 3    - Вычисление интегральной функции Лапласа\n";
 		return -1;
 	}
 
@@ -359,9 +452,11 @@ int main(int argc, char** argv) {
 		demonstrateTask1_2();
 	} else if (taskNumber == "2") {
 		demonstrateTask2();
+	} else if (taskNumber == "3") {
+		demonstrateTask3();
 	} else {
 		std::cerr << "Неизвестный номер задания: " << taskNumber << "\n";
-		std::cerr << "Доступные задания: 1.1, 1.2, 2\n";
+		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3\n";
 		return -1;
 	}
 
