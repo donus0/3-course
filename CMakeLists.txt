@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
     src/random_walk.cpp
     src/random_walk_visualizer.cpp
     src/laplace_function.cpp
+    src/sample_generator.cpp
 )
 
 # Линковка для Windows (MinGW)

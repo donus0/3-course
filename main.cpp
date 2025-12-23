@@ -2,6 +2,7 @@
 #include "random_variable.h"
 #include "random_walk_visualizer.h"
 #include "laplace_function.h"
+#include "sample_generator.h"
 #include <iostream>
 #include <limits>
 #include <windows.h>
@@ -609,6 +610,307 @@ void demonstrateTask4() {
 	std::cout << "\n=== Задание 4 завершено ===\n";
 }
 
+void demonstrateTask5() {
+	std::cout << "=== Задание 5: Генерация выборок для различных распределений ===\n\n";
+	
+	int sampleSize = 100;
+	unsigned int seed = 0;
+	
+	std::cout << "Введите размер выборки (по умолчанию 100): ";
+	std::string input;
+	std::getline(std::cin, input);
+	if (!input.empty()) {
+		try {
+			int inputSize = std::stoi(input);
+			if (inputSize > 0) {
+				sampleSize = inputSize;
+			} else {
+				std::cerr << "Размер выборки должен быть положительным, используется 100\n";
+			}
+		} catch (...) {
+			std::cerr << "Некорректный ввод, используется размер 100\n";
+		}
+	}
+	
+	std::cout << "Введите seed для генератора случайных чисел (0 = случайный, по умолчанию 0): ";
+	std::getline(std::cin, input);
+	if (!input.empty()) {
+		try {
+			seed = static_cast<unsigned int>(std::stoul(input));
+		} catch (...) {
+			std::cerr << "Некорректный ввод, используется случайный seed\n";
+			seed = 0;
+		}
+	}
+	
+	std::cout << "\n=== Параметры ===\n";
+	std::cout << "Размер выборки: " << sampleSize << "\n";
+	if (seed == 0) {
+		std::cout << "Seed: случайный\n\n";
+	} else {
+		std::cout << "Seed: " << seed << "\n\n";
+	}
+	
+	// a. Нормальное распределение
+	std::cout << "=== a. Нормальное распределение ===\n";
+	try {
+		double mean = 0.0;
+		double stddev = 1.0;
+		
+		std::cout << "Введите математическое ожидание (по умолчанию 0.0): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				mean = std::stod(input);
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 0.0\n";
+			}
+		}
+		
+		std::cout << "Введите среднеквадратическое отклонение (по умолчанию 1.0): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				stddev = std::stod(input);
+				if (stddev <= 0) {
+					std::cerr << "Среднеквадратическое отклонение должно быть положительным, используется 1.0\n";
+					stddev = 1.0;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 1.0\n";
+			}
+		}
+		
+		Sample sample = generateNormalSample(sampleSize, mean, stddev, seed);
+		std::cout << "Параметры: μ = " << mean << ", σ = " << stddev << "\n";
+		std::cout << sample.toString() << "\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка: " << ex.what() << "\n\n";
+	}
+	
+	// b. Пуассоновское распределение
+	std::cout << "=== b. Пуассоновское распределение ===\n";
+	try {
+		double lambda = 3.0;
+		
+		std::cout << "Введите параметр lambda (по умолчанию 3.0): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				lambda = std::stod(input);
+				if (lambda <= 0) {
+					std::cerr << "Lambda должен быть положительным, используется 3.0\n";
+					lambda = 3.0;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 3.0\n";
+			}
+		}
+		
+		Sample sample = generatePoissonSample(sampleSize, lambda, seed);
+		std::cout << "Параметр: λ = " << lambda << "\n";
+		std::cout << sample.toString() << "\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка: " << ex.what() << "\n\n";
+	}
+	
+	// c. Геометрическое распределение
+	std::cout << "=== c. Геометрическое распределение ===\n";
+	try {
+		double p = 0.3;
+		
+		std::cout << "Введите вероятность успеха p (по умолчанию 0.3): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				p = std::stod(input);
+				if (p <= 0 || p > 1) {
+					std::cerr << "Вероятность должна быть в диапазоне (0, 1], используется 0.3\n";
+					p = 0.3;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 0.3\n";
+			}
+		}
+		
+		Sample sample = generateGeometricSample(sampleSize, p, seed);
+		std::cout << "Параметр: p = " << p << "\n";
+		std::cout << sample.toString() << "\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка: " << ex.what() << "\n\n";
+	}
+	
+	// d. Гипергеометрическое распределение
+	std::cout << "=== d. Гипергеометрическое распределение ===\n";
+	try {
+		int N = 100;
+		int K = 30;
+		int n = 20;
+		
+		std::cout << "Введите размер генеральной совокупности N (по умолчанию 100): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				N = std::stoi(input);
+				if (N <= 0) {
+					std::cerr << "N должен быть положительным, используется 100\n";
+					N = 100;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 100\n";
+			}
+		}
+		
+		std::cout << "Введите количество успешных элементов K (по умолчанию 30): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				K = std::stoi(input);
+				if (K < 0 || K > N) {
+					std::cerr << "K должен быть в диапазоне [0, N], используется 30\n";
+					K = 30;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 30\n";
+			}
+		}
+		
+		std::cout << "Введите размер выборки n (по умолчанию 20): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				n = std::stoi(input);
+				if (n < 0 || n > N) {
+					std::cerr << "n должен быть в диапазоне [0, N], используется 20\n";
+					n = 20;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 20\n";
+			}
+		}
+		
+		Sample sample = generateHypergeometricSample(sampleSize, N, K, n, seed);
+		std::cout << "Параметры: N = " << N << ", K = " << K << ", n = " << n << "\n";
+		std::cout << sample.toString() << "\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка: " << ex.what() << "\n\n";
+	}
+	
+	// e. Двойное пуассоновское распределение
+	std::cout << "=== e. Двойное пуассоновское распределение ===\n";
+	try {
+		double lambda1 = 2.0;
+		double lambda2 = 5.0;
+		double p = 0.6;
+		
+		std::cout << "Введите параметр lambda1 (по умолчанию 2.0): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				lambda1 = std::stod(input);
+				if (lambda1 <= 0) {
+					std::cerr << "Lambda1 должен быть положительным, используется 2.0\n";
+					lambda1 = 2.0;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 2.0\n";
+			}
+		}
+		
+		std::cout << "Введите параметр lambda2 (по умолчанию 5.0): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				lambda2 = std::stod(input);
+				if (lambda2 <= 0) {
+					std::cerr << "Lambda2 должен быть положительным, используется 5.0\n";
+					lambda2 = 5.0;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 5.0\n";
+			}
+		}
+		
+		std::cout << "Введите вероятность выбора первого распределения p (по умолчанию 0.6): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				p = std::stod(input);
+				if (p < 0 || p > 1) {
+					std::cerr << "Вероятность должна быть в диапазоне [0, 1], используется 0.6\n";
+					p = 0.6;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 0.6\n";
+			}
+		}
+		
+		Sample sample = generateDoublePoissonSample(sampleSize, lambda1, lambda2, p, seed);
+		std::cout << "Параметры: λ1 = " << lambda1 << ", λ2 = " << lambda2 << ", p = " << p << "\n";
+		std::cout << sample.toString() << "\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка: " << ex.what() << "\n\n";
+	}
+	
+	// f. Двойное геометрическое распределение
+	std::cout << "=== f. Двойное геометрическое распределение ===\n";
+	try {
+		double p1 = 0.3;
+		double p2 = 0.5;
+		double q = 0.4;
+		
+		std::cout << "Введите вероятность успеха p1 (по умолчанию 0.3): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				p1 = std::stod(input);
+				if (p1 <= 0 || p1 > 1) {
+					std::cerr << "Вероятность должна быть в диапазоне (0, 1], используется 0.3\n";
+					p1 = 0.3;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 0.3\n";
+			}
+		}
+		
+		std::cout << "Введите вероятность успеха p2 (по умолчанию 0.5): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				p2 = std::stod(input);
+				if (p2 <= 0 || p2 > 1) {
+					std::cerr << "Вероятность должна быть в диапазоне (0, 1], используется 0.5\n";
+					p2 = 0.5;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 0.5\n";
+			}
+		}
+		
+		std::cout << "Введите вероятность выбора первого распределения q (по умолчанию 0.4): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				q = std::stod(input);
+				if (q < 0 || q > 1) {
+					std::cerr << "Вероятность должна быть в диапазоне [0, 1], используется 0.4\n";
+					q = 0.4;
+				}
+			} catch (...) {
+				std::cerr << "Некорректный ввод, используется 0.4\n";
+			}
+		}
+		
+		Sample sample = generateDoubleGeometricSample(sampleSize, p1, p2, q, seed);
+		std::cout << "Параметры: p1 = " << p1 << ", p2 = " << p2 << ", q = " << q << "\n";
+		std::cout << sample.toString() << "\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка: " << ex.what() << "\n\n";
+	}
+	
+	std::cout << "\n=== Задание 5 завершено ===\n";
+}
+
 int main(int argc, char** argv) {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -622,6 +924,7 @@ int main(int argc, char** argv) {
 		std::cerr << "  " << argv[0] << " 2    - Моделирование случайного блуждания\n";
 		std::cerr << "  " << argv[0] << " 3    - Вычисление интегральной функции Лапласа\n";
 		std::cerr << "  " << argv[0] << " 4    - Поиск аргумента по значению функции Лапласа\n";
+		std::cerr << "  " << argv[0] << " 5    - Генерация выборок для различных распределений\n";
 		return -1;
 	}
 
@@ -637,9 +940,11 @@ int main(int argc, char** argv) {
 		demonstrateTask3();
 	} else if (taskNumber == "4") {
 		demonstrateTask4();
+	} else if (taskNumber == "5") {
+		demonstrateTask5();
 	} else {
 		std::cerr << "Неизвестный номер задания: " << taskNumber << "\n";
-		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4\n";
+		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4, 5\n";
 		return -1;
 	}
 
