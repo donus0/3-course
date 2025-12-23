@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "../include/laplace_function.h"
 #include <cmath>
+#include <stdexcept>
 
 // Подынтегральная функция для интегральной функции Лапласа: e^(-t²/2)
 double laplaceIntegrand(double t) {
@@ -50,5 +51,79 @@ double laplaceFunction(double x, int n, bool useTrapezoidal) {
 	}
 	
 	return integral / sqrt2pi;
+}
+
+// Производная интегральной функции Лапласа: Φ'(x) = (1/√(2π)) * e^(-x²/2)
+double laplaceFunctionDerivative(double x) {
+	const double sqrt2pi = std::sqrt(2.0 * M_PI);
+	return std::exp(-x * x / 2.0) / sqrt2pi;
+}
+
+// Поиск аргумента x по значению функции Φ(x) методом деления отрезка пополам
+double laplaceInverseBisection(double targetValue, double a, double b, double epsilon, int n, int maxIterations) {
+	// Функция для метода бисекции: f(x) = Φ(x) - targetValue
+	auto f = [targetValue, n](double x) -> double {
+		return laplaceFunction(x, n, true) - targetValue;
+	};
+	
+	// Проверка знаков на концах отрезка
+	double fa = f(a);
+	double fb = f(b);
+	
+	if (fa * fb > 0) {
+		// Если знаки одинаковые, корня нет на этом отрезке
+		throw std::runtime_error("Функция имеет одинаковые знаки на концах отрезка. Выберите другой отрезок.");
+	}
+	
+	int iterations = 0;
+	while ((b - a) > epsilon && iterations < maxIterations) {
+		double c = (a + b) / 2.0;
+		double fc = f(c);
+		
+		if (std::abs(fc) < epsilon) {
+			return c;
+		}
+		
+		if (fa * fc < 0) {
+			b = c;
+			fb = fc;
+		} else {
+			a = c;
+			fa = fc;
+		}
+		
+		++iterations;
+	}
+	
+	return (a + b) / 2.0;
+}
+
+// Поиск аргумента x по значению функции Φ(x) методом Ньютона
+double laplaceInverseNewton(double targetValue, double x0, double epsilon, int n, int maxIterations) {
+	double x = x0;
+	
+	for (int i = 0; i < maxIterations; ++i) {
+		double fx = laplaceFunction(x, n, true) - targetValue;
+		
+		if (std::abs(fx) < epsilon) {
+			return x;
+		}
+		
+		double fpx = laplaceFunctionDerivative(x);
+		
+		if (std::abs(fpx) < 1e-15) {
+			throw std::runtime_error("Производная слишком мала. Метод Ньютона не может быть применен.");
+		}
+		
+		double xNew = x - fx / fpx;
+		
+		if (std::abs(xNew - x) < epsilon) {
+			return xNew;
+		}
+		
+		x = xNew;
+	}
+	
+	return x;
 }
 

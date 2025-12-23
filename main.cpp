@@ -429,6 +429,186 @@ void demonstrateTask3() {
 	std::cout << "\n=== Задание 3 завершено ===\n";
 }
 
+void demonstrateTask4() {
+	std::cout << "=== Задание 4: Поиск аргумента по значению функции Лапласа ===\n\n";
+	
+	// Ввод параметров
+	double targetValue = 0.0;
+	double epsilon = 1e-6;
+	int n = 1000; // Количество разбиений для численного интегрирования
+	
+	std::cout << "Введите значение функции Φ(x), которое нужно найти: ";
+	if (!(std::cin >> targetValue)) {
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		std::cerr << "Некорректный ввод, используется значение 0.0\n";
+		targetValue = 0.0;
+	}
+	
+	std::cout << "Введите точность epsilon (по умолчанию 1e-6): ";
+	std::string input;
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	std::getline(std::cin, input);
+	if (!input.empty()) {
+		try {
+			epsilon = std::stod(input);
+			if (epsilon <= 0) {
+				std::cerr << "Точность должна быть положительной, используется epsilon = 1e-6\n";
+				epsilon = 1e-6;
+			}
+		} catch (...) {
+			std::cerr << "Некорректный ввод, используется epsilon = 1e-6\n";
+			epsilon = 1e-6;
+		}
+	}
+	
+	std::cout << "Введите количество разбиений n для численного интегрирования (по умолчанию 1000): ";
+	std::getline(std::cin, input);
+	if (!input.empty()) {
+		try {
+			int inputN = std::stoi(input);
+			if (inputN > 0) {
+				n = inputN;
+			} else {
+				std::cerr << "Количество разбиений должно быть положительным, используется n = 1000\n";
+			}
+		} catch (...) {
+			std::cerr << "Некорректный ввод, используется n = 1000\n";
+		}
+	}
+	
+	std::cout << "\n=== Результаты вычислений ===\n";
+	std::cout << "Параметры:\n";
+	std::cout << "  Целевое значение Φ(x) = " << targetValue << "\n";
+	std::cout << "  Точность epsilon = " << std::scientific << std::setprecision(6) << epsilon << "\n";
+	std::cout << "  Количество разбиений n = " << std::fixed << n << "\n\n";
+	
+	// Проверка диапазона значений функции Лапласа
+	// Функция Лапласа принимает значения примерно от -0.5 до 0.5
+	const double maxValue = 0.5;
+	if (std::abs(targetValue) > maxValue) {
+		std::cerr << "Предупреждение: значение " << targetValue 
+		          << " выходит за типичный диапазон функции Лапласа [-0.5, 0.5]\n";
+		std::cerr << "Результаты могут быть неточными.\n\n";
+	}
+	
+	// Метод деления отрезка пополам
+	std::cout << "=== Метод деления отрезка пополам ===\n";
+	try {
+		// Определяем начальный отрезок
+		// Для функции Лапласа значения лежат примерно в диапазоне [-4, 4] для значений функции [-0.5, 0.5]
+		double a = -5.0;
+		double b = 5.0;
+		
+		// Если значение отрицательное, ищем в отрицательной области
+		if (targetValue < 0) {
+			a = -5.0;
+			b = 0.0;
+		} else if (targetValue > 0) {
+			a = 0.0;
+			b = 5.0;
+		} else {
+			// Если значение 0, результат очевиден
+			std::cout << "  x = 0.0 (значение функции равно 0)\n\n";
+		}
+		
+		if (targetValue != 0.0) {
+			double xBisection = laplaceInverseBisection(targetValue, a, b, epsilon, n);
+			double computedValue = laplaceFunction(xBisection, n, true);
+			double error = std::abs(computedValue - targetValue);
+			
+			std::cout << std::fixed << std::setprecision(10);
+			std::cout << "  Найденный аргумент x = " << xBisection << "\n";
+			std::cout << "  Проверка: Φ(" << xBisection << ") = " << computedValue << "\n";
+			std::cout << "  Ошибка: |Φ(x) - target| = " << std::scientific << std::setprecision(6) << error << "\n\n";
+		}
+	} catch (const std::exception& ex) {
+		std::cerr << "  Ошибка при использовании метода бисекции: " << ex.what() << "\n\n";
+	}
+	
+	// Метод Ньютона
+	std::cout << "=== Метод Ньютона ===\n";
+	try {
+		// Начальное приближение
+		// Для положительных значений начинаем с положительного x, для отрицательных - с отрицательного
+		double x0 = (targetValue >= 0) ? 1.0 : -1.0;
+		
+		double xNewton = laplaceInverseNewton(targetValue, x0, epsilon, n);
+		double computedValue = laplaceFunction(xNewton, n, true);
+		double error = std::abs(computedValue - targetValue);
+		
+		std::cout << std::fixed << std::setprecision(10);
+		std::cout << "  Начальное приближение x0 = " << x0 << "\n";
+		std::cout << "  Найденный аргумент x = " << xNewton << "\n";
+		std::cout << "  Проверка: Φ(" << xNewton << ") = " << computedValue << "\n";
+		std::cout << "  Ошибка: |Φ(x) - target| = " << std::scientific << std::setprecision(6) << error << "\n\n";
+	} catch (const std::exception& ex) {
+		std::cerr << "  Ошибка при использовании метода Ньютона: " << ex.what() << "\n\n";
+	}
+	
+	// Сравнение методов
+	std::cout << "=== Сравнение методов ===\n";
+	try {
+		double a = (targetValue < 0) ? -5.0 : 0.0;
+		double b = (targetValue > 0) ? 5.0 : 0.0;
+		
+		if (targetValue != 0.0) {
+			double xBisection = laplaceInverseBisection(targetValue, a, b, epsilon, n);
+			double x0 = (targetValue >= 0) ? 1.0 : -1.0;
+			double xNewton = laplaceInverseNewton(targetValue, x0, epsilon, n);
+			
+			double diff = std::abs(xBisection - xNewton);
+			
+			std::cout << std::fixed << std::setprecision(10);
+			std::cout << "  Метод бисекции: x = " << xBisection << "\n";
+			std::cout << "  Метод Ньютона:  x = " << xNewton << "\n";
+			std::cout << "  Разница: |x_bisection - x_newton| = " 
+			          << std::scientific << std::setprecision(6) << diff << "\n\n";
+		}
+	} catch (const std::exception& ex) {
+		std::cerr << "  Не удалось сравнить методы: " << ex.what() << "\n\n";
+	}
+	
+	// Демонстрация для нескольких значений
+	std::cout << "\n=== Таблица результатов для различных значений ===\n";
+	std::cout << std::fixed << std::setprecision(6);
+	std::cout << std::setw(15) << "Φ(x)" << std::setw(20) << "Метод бисекции" 
+	          << std::setw(20) << "Метод Ньютона" << std::setw(20) << "Разница" << "\n";
+	std::cout << std::string(75, '-') << "\n";
+	
+	std::vector<double> testValues = {-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3};
+	for (double testTarget : testValues) {
+		try {
+			double a = (testTarget < 0) ? -5.0 : 0.0;
+			double b = (testTarget > 0) ? 5.0 : 0.0;
+			double x0 = (testTarget >= 0) ? 1.0 : -1.0;
+			
+			if (testTarget == 0.0) {
+				std::cout << std::setw(15) << testTarget 
+				          << std::setw(20) << 0.0 
+				          << std::setw(20) << 0.0 
+				          << std::setw(20) << 0.0 << "\n";
+			} else {
+				double xBisection = laplaceInverseBisection(testTarget, a, b, epsilon, n);
+				double xNewton = laplaceInverseNewton(testTarget, x0, epsilon, n);
+				double diff = std::abs(xBisection - xNewton);
+				
+				std::cout << std::setw(15) << std::setprecision(6) << testTarget
+				          << std::setw(20) << std::setprecision(10) << xBisection
+				          << std::setw(20) << xNewton
+				          << std::setw(20) << std::scientific << std::setprecision(6) << diff << "\n";
+			}
+		} catch (...) {
+			std::cout << std::setw(15) << testTarget 
+			          << std::setw(20) << "Ошибка" 
+			          << std::setw(20) << "Ошибка" 
+			          << std::setw(20) << "N/A" << "\n";
+		}
+	}
+	
+	std::cout << "\n=== Задание 4 завершено ===\n";
+}
+
 int main(int argc, char** argv) {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -441,6 +621,7 @@ int main(int argc, char** argv) {
 		std::cerr << "  " << argv[0] << " 1.2  - Визуализация ДСВ через OpenGL\n";
 		std::cerr << "  " << argv[0] << " 2    - Моделирование случайного блуждания\n";
 		std::cerr << "  " << argv[0] << " 3    - Вычисление интегральной функции Лапласа\n";
+		std::cerr << "  " << argv[0] << " 4    - Поиск аргумента по значению функции Лапласа\n";
 		return -1;
 	}
 
@@ -454,9 +635,11 @@ int main(int argc, char** argv) {
 		demonstrateTask2();
 	} else if (taskNumber == "3") {
 		demonstrateTask3();
+	} else if (taskNumber == "4") {
+		demonstrateTask4();
 	} else {
 		std::cerr << "Неизвестный номер задания: " << taskNumber << "\n";
-		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3\n";
+		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4\n";
 		return -1;
 	}
 
