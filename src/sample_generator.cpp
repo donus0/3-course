@@ -365,3 +365,64 @@ Sample loadSampleFromFile(const std::string& filename,
 	
 	return sample;
 }
+
+// Выборочное среднее (несмещённая оценка математического ожидания)
+double sampleMean(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя вычислить среднее для пустой выборки");
+	}
+	
+	double sum = 0.0;
+	for (const auto& pair : sample.data) {
+		sum += pair.first * pair.second;
+	}
+	
+	return sum / n;
+}
+
+// Выборочная дисперсия (смещённая оценка дисперсии)
+double sampleVariance(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя вычислить дисперсию для пустой выборки");
+	}
+	if (n == 1) {
+		return 0.0; // Для выборки из одного элемента дисперсия равна 0
+	}
+	
+	double mean = sampleMean(sample);
+	double sum = 0.0;
+	
+	for (const auto& pair : sample.data) {
+		double diff = pair.first - mean;
+		sum += pair.second * diff * diff;
+	}
+	
+	return sum / n;
+}
+
+// Исправленная дисперсия (несмещённая оценка дисперсии)
+double correctedVariance(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя вычислить исправленную дисперсию для пустой выборки");
+	}
+	if (n == 1) {
+		return 0.0; // Для выборки из одного элемента дисперсия равна 0
+	}
+	
+	// Исправленная дисперсия = (n/(n-1)) * выборочная дисперсия
+	double biasedVariance = sampleVariance(sample);
+	return biasedVariance * n / (n - 1);
+}
+
+// Выборочное среднеквадратическое отклонение
+double sampleStandardDeviation(const Sample& sample) {
+	return std::sqrt(sampleVariance(sample));
+}
+
+// Исправленное среднеквадратическое отклонение
+double correctedStandardDeviation(const Sample& sample) {
+	return std::sqrt(correctedVariance(sample));
+}

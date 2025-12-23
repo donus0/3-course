@@ -75,5 +75,25 @@ Sample loadSampleFromFile(const std::string& filename,
                           bool requireNonNegativeValues = false,
                           bool requireNonNegativeCounts = true);
 
+// Статистические оценки для выборки
+
+// Выборочное среднее (несмещённая оценка математического ожидания)
+// x̄ = (1/n) * Σ(xi * ni), где n - общий размер выборки
+double sampleMean(const Sample& sample);
+
+// Выборочная дисперсия (смещённая оценка дисперсии)
+// D = (1/n) * Σ(ni * (xi - x̄)²)
+double sampleVariance(const Sample& sample);
+
+// Исправленная дисперсия (несмещённая оценка дисперсии)
+// s² = (1/(n-1)) * Σ(ni * (xi - x̄)²) = (n/(n-1)) * D
+double correctedVariance(const Sample& sample);
+
+// Выборочное среднеквадратическое отклонение (на основе выборочной дисперсии)
+double sampleStandardDeviation(const Sample& sample);
+
+// Исправленное среднеквадратическое отклонение (на основе исправленной дисперсии)
+double correctedStandardDeviation(const Sample& sample);
+
 #endif
 
