@@ -63,5 +63,17 @@ Sample generateDoublePoissonSample(int size, double lambda1, double lambda2, dou
 // seed - начальное значение для генератора случайных чисел (0 = случайное)
 Sample generateDoubleGeometricSample(int size, double p1, double p2, double q, unsigned int seed = 0);
 
+// Загрузка выборки из текстового файла
+// Формат файла: каждая строка содержит "значение количество" (разделенные пробелом или табуляцией)
+// Пустые строки и строки, начинающиеся с #, игнорируются
+// filename - путь к файлу
+// requireUniqueValues - требовать уникальность значений xi (по умолчанию true)
+// requireNonNegativeValues - требовать неотрицательность значений xi (по умолчанию false)
+// requireNonNegativeCounts - требовать неотрицательность количеств xj (по умолчанию true)
+Sample loadSampleFromFile(const std::string& filename, 
+                          bool requireUniqueValues = true,
+                          bool requireNonNegativeValues = false,
+                          bool requireNonNegativeCounts = true);
+
 #endif
 

@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
+#include <fstream>
+#include <set>
 
 // Преобразование выборки в строку
 std::string Sample::toString() const {
@@ -280,6 +282,85 @@ Sample generateDoubleGeometricSample(int size, double p1, double p2, double q, u
 	Sample sample;
 	for (const auto& pair : frequencyMap) {
 		sample.data.emplace_back(static_cast<double>(pair.first), pair.second);
+	}
+	
+	return sample;
+}
+
+// Загрузка выборки из текстового файла
+Sample loadSampleFromFile(const std::string& filename, 
+                          bool requireUniqueValues,
+                          bool requireNonNegativeValues,
+                          bool requireNonNegativeCounts) {
+	std::ifstream file(filename);
+	if (!file.is_open()) {
+		throw std::runtime_error("Не удалось открыть файл: " + filename);
+	}
+	
+	Sample sample;
+	std::set<double> seenValues;
+	std::string line;
+	int lineNumber = 0;
+	
+	while (std::getline(file, line)) {
+		lineNumber++;
+		
+		// Пропускаем пустые строки и комментарии
+		if (line.empty() || line[0] == '#') {
+			continue;
+		}
+		
+		// Удаляем пробелы в начале и конце строки
+		line.erase(0, line.find_first_not_of(" \t"));
+		line.erase(line.find_last_not_of(" \t") + 1);
+		
+		if (line.empty()) {
+			continue;
+		}
+		
+		// Парсим строку: значение и количество
+		std::istringstream iss(line);
+		double value;
+		int count;
+		
+		if (!(iss >> value >> count)) {
+			throw std::runtime_error("Ошибка парсинга строки " + std::to_string(lineNumber) + 
+			                        " в файле " + filename + ": ожидается формат 'значение количество'");
+		}
+		
+		// Проверка на неотрицательность значений xi
+		if (requireNonNegativeValues && value < 0) {
+			throw std::runtime_error("Ошибка в строке " + std::to_string(lineNumber) + 
+			                        ": значение xi = " + std::to_string(value) + " отрицательно");
+		}
+		
+		// Проверка на неотрицательность количеств xj
+		if (requireNonNegativeCounts && count < 0) {
+			throw std::runtime_error("Ошибка в строке " + std::to_string(lineNumber) + 
+			                        ": количество xj = " + std::to_string(count) + " отрицательно");
+		}
+		
+		// Проверка на уникальность значений xi
+		if (requireUniqueValues) {
+			if (seenValues.find(value) != seenValues.end()) {
+				throw std::runtime_error("Ошибка в строке " + std::to_string(lineNumber) + 
+				                        ": значение xi = " + std::to_string(value) + " уже встречалось");
+			}
+			seenValues.insert(value);
+		}
+		
+		// Проверка на нулевое количество (может быть допустимо, но обычно не нужно)
+		if (count == 0) {
+			continue; // Пропускаем записи с нулевым количеством
+		}
+		
+		sample.data.emplace_back(value, count);
+	}
+	
+	file.close();
+	
+	if (sample.data.empty()) {
+		throw std::runtime_error("Файл " + filename + " не содержит корректных данных");
 	}
 	
 	return sample;

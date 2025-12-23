@@ -911,6 +911,96 @@ void demonstrateTask5() {
 	std::cout << "\n=== Задание 5 завершено ===\n";
 }
 
+void demonstrateTask6() {
+	std::cout << "=== Задание 6: Загрузка выборки из текстового файла ===\n\n";
+	
+	std::cout << "Формат файла:\n";
+	std::cout << "  - Каждая строка содержит: значение количество\n";
+	std::cout << "  - Разделитель: пробел или табуляция\n";
+	std::cout << "  - Пустые строки и строки, начинающиеся с #, игнорируются\n";
+	std::cout << "  - Пример:\n";
+	std::cout << "    1.5  10\n";
+	std::cout << "    2.0  5\n";
+	std::cout << "    3.5  8\n\n";
+	
+	std::string filename;
+	std::cout << "Введите путь к файлу: ";
+	std::string input;
+	std::getline(std::cin, input);
+	if (input.empty()) {
+		std::cerr << "Путь к файлу не может быть пустым\n";
+		return;
+	}
+	filename = input;
+	
+	// Параметры валидации
+	bool requireUniqueValues = true;
+	bool requireNonNegativeValues = false;
+	bool requireNonNegativeCounts = true;
+	
+	std::cout << "\nПараметры валидации:\n";
+	std::cout << "Требовать уникальность значений xi (y/n, по умолчанию y): ";
+	std::getline(std::cin, input);
+	if (!input.empty() && (input[0] == 'n' || input[0] == 'N')) {
+		requireUniqueValues = false;
+	}
+	
+	std::cout << "Требовать неотрицательность значений xi (y/n, по умолчанию n): ";
+	std::getline(std::cin, input);
+	if (!input.empty() && (input[0] == 'y' || input[0] == 'Y')) {
+		requireNonNegativeValues = true;
+	}
+	
+	std::cout << "Требовать неотрицательность количеств xj (y/n, по умолчанию y): ";
+	std::getline(std::cin, input);
+	if (!input.empty() && (input[0] == 'n' || input[0] == 'N')) {
+		requireNonNegativeCounts = false;
+	}
+	
+	std::cout << "\n=== Загрузка выборки ===\n";
+	try {
+		Sample sample = loadSampleFromFile(filename, requireUniqueValues, 
+		                                  requireNonNegativeValues, requireNonNegativeCounts);
+		
+		std::cout << "Выборка успешно загружена!\n\n";
+		std::cout << sample.toString() << "\n";
+		
+		// Дополнительная информация
+		std::cout << "=== Дополнительная информация ===\n";
+		std::cout << "Количество уникальных значений: " << sample.data.size() << "\n";
+		std::cout << "Общий размер выборки: " << sample.getTotalSize() << "\n";
+		
+		// Статистика
+		if (!sample.data.empty()) {
+			double minValue = sample.data[0].first;
+			double maxValue = sample.data[0].first;
+			int maxCount = sample.data[0].second;
+			int minCount = sample.data[0].second;
+			
+			for (const auto& pair : sample.data) {
+				if (pair.first < minValue) minValue = pair.first;
+				if (pair.first > maxValue) maxValue = pair.first;
+				if (pair.second > maxCount) maxCount = pair.second;
+				if (pair.second < minCount) minCount = pair.second;
+			}
+			
+			std::cout << "Минимальное значение: " << minValue << "\n";
+			std::cout << "Максимальное значение: " << maxValue << "\n";
+			std::cout << "Минимальная частота: " << minCount << "\n";
+			std::cout << "Максимальная частота: " << maxCount << "\n";
+		}
+		
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка при загрузке выборки: " << ex.what() << "\n";
+		std::cerr << "\nПроверьте:\n";
+		std::cerr << "  1. Существует ли файл по указанному пути\n";
+		std::cerr << "  2. Корректность формата файла\n";
+		std::cerr << "  3. Соответствие данных требованиям валидации\n";
+	}
+	
+	std::cout << "\n=== Задание 6 завершено ===\n";
+}
+
 int main(int argc, char** argv) {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -925,6 +1015,7 @@ int main(int argc, char** argv) {
 		std::cerr << "  " << argv[0] << " 3    - Вычисление интегральной функции Лапласа\n";
 		std::cerr << "  " << argv[0] << " 4    - Поиск аргумента по значению функции Лапласа\n";
 		std::cerr << "  " << argv[0] << " 5    - Генерация выборок для различных распределений\n";
+		std::cerr << "  " << argv[0] << " 6    - Загрузка выборки из текстового файла\n";
 		return -1;
 	}
 
@@ -942,9 +1033,11 @@ int main(int argc, char** argv) {
 		demonstrateTask4();
 	} else if (taskNumber == "5") {
 		demonstrateTask5();
+	} else if (taskNumber == "6") {
+		demonstrateTask6();
 	} else {
 		std::cerr << "Неизвестный номер задания: " << taskNumber << "\n";
-		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4, 5\n";
+		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4, 5, 6\n";
 		return -1;
 	}
 
