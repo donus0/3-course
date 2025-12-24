@@ -95,5 +95,39 @@ double sampleStandardDeviation(const Sample& sample);
 // Исправленное среднеквадратическое отклонение (на основе исправленной дисперсии)
 double correctedStandardDeviation(const Sample& sample);
 
+// Структура для результата проверки гипотезы
+struct HypothesisTestResult {
+	double chiSquare;        // Статистика хи-квадрат
+	int degreesOfFreedom;   // Число степеней свободы
+	double pValue;          // p-value
+	bool hypothesisAccepted; // Принята ли гипотеза (при уровне значимости 0.05)
+	double significanceLevel; // Уровень значимости
+	
+	std::string toString() const;
+};
+
+// Проверка гипотезы о нормальном распределении
+// sample - выборка для проверки
+// significanceLevel - уровень значимости (по умолчанию 0.05)
+HypothesisTestResult testNormalDistribution(const Sample& sample, double significanceLevel = 0.05);
+
+// Проверка гипотезы о пуассоновском распределении
+HypothesisTestResult testPoissonDistribution(const Sample& sample, double significanceLevel = 0.05);
+
+// Проверка гипотезы о геометрическом распределении
+HypothesisTestResult testGeometricDistribution(const Sample& sample, double significanceLevel = 0.05);
+
+// Проверка гипотезы о гипергеометрическом распределении
+// N, K, n - параметры распределения (должны быть заданы)
+HypothesisTestResult testHypergeometricDistribution(const Sample& sample, int N, int K, int n, double significanceLevel = 0.05);
+
+// Проверка гипотезы о двойном пуассоновском распределении
+// lambda1, lambda2, p - параметры распределения (должны быть заданы)
+HypothesisTestResult testDoublePoissonDistribution(const Sample& sample, double lambda1, double lambda2, double p, double significanceLevel = 0.05);
+
+// Проверка гипотезы о двойном геометрическом распределении
+// p1, p2, q - параметры распределения (должны быть заданы)
+HypothesisTestResult testDoubleGeometricDistribution(const Sample& sample, double p1, double p2, double q, double significanceLevel = 0.05);
+
 #endif
 
