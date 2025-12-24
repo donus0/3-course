@@ -1435,6 +1435,273 @@ void demonstrateTask8() {
 	std::cout << "\n=== Задание 8 завершено ===\n";
 }
 
+void demonstrateTask9() {
+	std::cout << "=== Задание 9: Оценка параметров распределений по выборке ===\n\n";
+	
+	std::cout << "Выберите источник выборки:\n";
+	std::cout << "1 - Сгенерировать новую выборку (задание 5)\n";
+	std::cout << "2 - Загрузить из файла (задание 6)\n";
+	std::cout << "Ваш выбор: ";
+	
+	int choice;
+	std::string input;
+	std::getline(std::cin, input);
+	if (input.empty() || !(std::istringstream(input) >> choice)) {
+		std::cerr << "Некорректный ввод\n";
+		return;
+	}
+	
+	Sample sample;
+	
+	if (choice == 1) {
+		// Генерация выборки
+		std::cout << "\n=== Генерация выборки ===\n";
+		std::cout << "Выберите тип распределения:\n";
+		std::cout << "1 - Нормальное\n";
+		std::cout << "2 - Пуассоновское\n";
+		std::cout << "3 - Геометрическое\n";
+		std::cout << "4 - Гипергеометрическое\n";
+		std::cout << "5 - Двойное пуассоновское\n";
+		std::cout << "6 - Двойное геометрическое\n";
+		std::cout << "Ваш выбор: ";
+		
+		std::getline(std::cin, input);
+		int distChoice;
+		if (input.empty() || !(std::istringstream(input) >> distChoice)) {
+			std::cerr << "Некорректный ввод\n";
+			return;
+		}
+		
+		int size = 100;
+		unsigned int seed = 0;
+		
+		std::cout << "Введите размер выборки (по умолчанию 100): ";
+		std::getline(std::cin, input);
+		if (!input.empty()) {
+			try {
+				size = std::stoi(input);
+				if (size <= 0) size = 100;
+			} catch (...) {
+				size = 100;
+			}
+		}
+		
+		try {
+			switch (distChoice) {
+				case 1: {
+					double mean = 0.0, stddev = 1.0;
+					std::cout << "Введите математическое ожидание (по умолчанию 0.0): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) mean = std::stod(input);
+					std::cout << "Введите среднеквадратическое отклонение (по умолчанию 1.0): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) {
+						stddev = std::stod(input);
+						if (stddev <= 0) stddev = 1.0;
+					}
+					sample = generateNormalSample(size, mean, stddev, seed);
+					std::cout << "Сгенерирована выборка нормального распределения (μ=" << mean << ", σ=" << stddev << ")\n";
+					break;
+				}
+				case 2: {
+					double lambda = 3.0;
+					std::cout << "Введите параметр lambda (по умолчанию 3.0): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) {
+						lambda = std::stod(input);
+						if (lambda <= 0) lambda = 3.0;
+					}
+					sample = generatePoissonSample(size, lambda, seed);
+					std::cout << "Сгенерирована выборка пуассоновского распределения (λ=" << lambda << ")\n";
+					break;
+				}
+				case 3: {
+					double p = 0.3;
+					std::cout << "Введите вероятность успеха p (по умолчанию 0.3): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) {
+						p = std::stod(input);
+						if (p <= 0 || p > 1) p = 0.3;
+					}
+					sample = generateGeometricSample(size, p, seed);
+					std::cout << "Сгенерирована выборка геометрического распределения (p=" << p << ")\n";
+					break;
+				}
+				case 4: {
+					int N = 100, K = 30, n = 20;
+					std::cout << "Введите N (по умолчанию 100): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) N = std::stoi(input);
+					std::cout << "Введите K (по умолчанию 30): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) K = std::stoi(input);
+					std::cout << "Введите n (по умолчанию 20): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) n = std::stoi(input);
+					sample = generateHypergeometricSample(size, N, K, n, seed);
+					std::cout << "Сгенерирована выборка гипергеометрического распределения (N=" << N << ", K=" << K << ", n=" << n << ")\n";
+					break;
+				}
+				case 5: {
+					double lambda1 = 2.0, lambda2 = 5.0, p = 0.6;
+					std::cout << "Введите lambda1 (по умолчанию 2.0): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) lambda1 = std::stod(input);
+					std::cout << "Введите lambda2 (по умолчанию 5.0): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) lambda2 = std::stod(input);
+					std::cout << "Введите p (по умолчанию 0.6): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) p = std::stod(input);
+					sample = generateDoublePoissonSample(size, lambda1, lambda2, p, seed);
+					std::cout << "Сгенерирована выборка двойного пуассоновского распределения\n";
+					break;
+				}
+				case 6: {
+					double p1 = 0.3, p2 = 0.5, q = 0.4;
+					std::cout << "Введите p1 (по умолчанию 0.3): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) p1 = std::stod(input);
+					std::cout << "Введите p2 (по умолчанию 0.5): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) p2 = std::stod(input);
+					std::cout << "Введите q (по умолчанию 0.4): ";
+					std::getline(std::cin, input);
+					if (!input.empty()) q = std::stod(input);
+					sample = generateDoubleGeometricSample(size, p1, p2, q, seed);
+					std::cout << "Сгенерирована выборка двойного геометрического распределения\n";
+					break;
+				}
+				default:
+					std::cerr << "Неизвестный тип распределения\n";
+					return;
+			}
+		} catch (const std::exception& ex) {
+			std::cerr << "Ошибка при генерации выборки: " << ex.what() << "\n";
+			return;
+		}
+	} else if (choice == 2) {
+		// Загрузка из файла
+		std::cout << "\n=== Загрузка выборки из файла ===\n";
+		std::cout << "Введите путь к файлу: ";
+		std::getline(std::cin, input);
+		if (input.empty()) {
+			std::cerr << "Путь к файлу не может быть пустым\n";
+			return;
+		}
+		
+		try {
+			sample = loadSampleFromFile(input, true, false, true);
+			std::cout << "Выборка успешно загружена из файла: " << input << "\n";
+		} catch (const std::exception& ex) {
+			std::cerr << "Ошибка при загрузке выборки: " << ex.what() << "\n";
+			return;
+		}
+	} else {
+		std::cerr << "Неизвестный выбор\n";
+		return;
+	}
+	
+	std::cout << "\nВыборка загружена. Размер: " << sample.getTotalSize() << "\n";
+	
+	// Выбор типа распределения для оценки параметров
+	std::cout << "\n=== Выбор распределения для оценки параметров ===\n";
+	std::cout << "1 - Нормальное\n";
+	std::cout << "2 - Пуассоновское\n";
+	std::cout << "3 - Геометрическое\n";
+	std::cout << "4 - Гипергеометрическое\n";
+	std::cout << "5 - Двойное пуассоновское\n";
+	std::cout << "6 - Двойное геометрическое\n";
+	std::cout << "Ваш выбор: ";
+	
+	std::getline(std::cin, input);
+	int estimateChoice;
+	if (input.empty() || !(std::istringstream(input) >> estimateChoice)) {
+		std::cerr << "Некорректный ввод\n";
+		return;
+	}
+	
+	std::cout << "\n=== Результаты оценки параметров ===\n";
+	
+	try {
+		switch (estimateChoice) {
+			case 1: {
+				NormalDistributionParams params = estimateNormalDistribution(sample);
+				std::cout << params.toString() << "\n";
+				
+				// Сравнение с выборочными характеристиками
+				std::cout << "Сравнение с выборочными характеристиками:\n";
+				std::cout << "  Выборочное среднее: " << std::fixed << std::setprecision(10) << sampleMean(sample) << "\n";
+				std::cout << "  Исправленное СКО: " << correctedStandardDeviation(sample) << "\n";
+				break;
+			}
+			case 2: {
+				PoissonDistributionParams params = estimatePoissonDistribution(sample);
+				std::cout << params.toString() << "\n";
+				
+				// Сравнение
+				std::cout << "Сравнение с выборочным средним:\n";
+				std::cout << "  Выборочное среднее: " << std::fixed << std::setprecision(10) << sampleMean(sample) << "\n";
+				break;
+			}
+			case 3: {
+				GeometricDistributionParams params = estimateGeometricDistribution(sample);
+				std::cout << params.toString() << "\n";
+				
+				// Сравнение
+				double mean = sampleMean(sample);
+				std::cout << "Сравнение:\n";
+				std::cout << "  Выборочное среднее: " << std::fixed << std::setprecision(10) << mean << "\n";
+				std::cout << "  Теоретическое среднее для геометрического: (1-p)/p = " << (1.0 - params.p) / params.p << "\n";
+				break;
+			}
+			case 4: {
+				HypergeometricDistributionParams params = estimateHypergeometricDistribution(sample);
+				std::cout << params.toString() << "\n";
+				
+				// Сравнение
+				double mean = sampleMean(sample);
+				std::cout << "Сравнение:\n";
+				std::cout << "  Выборочное среднее: " << std::fixed << std::setprecision(10) << mean << "\n";
+				std::cout << "  Теоретическое среднее: n*K/N = " << (params.n * params.K) / static_cast<double>(params.N) << "\n";
+				break;
+			}
+			case 5: {
+				DoublePoissonDistributionParams params = estimateDoublePoissonDistribution(sample);
+				std::cout << params.toString() << "\n";
+				
+				// Сравнение
+				double mean = sampleMean(sample);
+				double theoreticalMean = params.p * params.lambda1 + (1.0 - params.p) * params.lambda2;
+				std::cout << "Сравнение:\n";
+				std::cout << "  Выборочное среднее: " << std::fixed << std::setprecision(10) << mean << "\n";
+				std::cout << "  Теоретическое среднее: p*λ1 + (1-p)*λ2 = " << theoreticalMean << "\n";
+				break;
+			}
+			case 6: {
+				DoubleGeometricDistributionParams params = estimateDoubleGeometricDistribution(sample);
+				std::cout << params.toString() << "\n";
+				
+				// Сравнение
+				double mean = sampleMean(sample);
+				double theoreticalMean = params.q * (1.0 - params.p1) / params.p1 + (1.0 - params.q) * (1.0 - params.p2) / params.p2;
+				std::cout << "Сравнение:\n";
+				std::cout << "  Выборочное среднее: " << std::fixed << std::setprecision(10) << mean << "\n";
+				std::cout << "  Теоретическое среднее: q*(1-p1)/p1 + (1-q)*(1-p2)/p2 = " << theoreticalMean << "\n";
+				break;
+			}
+			default:
+				std::cerr << "Неизвестный тип распределения\n";
+				return;
+		}
+	} catch (const std::exception& ex) {
+		std::cerr << "Ошибка при оценке параметров: " << ex.what() << "\n";
+		return;
+	}
+	
+	std::cout << "\n=== Задание 9 завершено ===\n";
+}
+
 int main(int argc, char** argv) {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -1452,6 +1719,7 @@ int main(int argc, char** argv) {
 		std::cerr << "  " << argv[0] << " 6    - Загрузка выборки из текстового файла\n";
 		std::cerr << "  " << argv[0] << " 7    - Вычисление статистических оценок для выборок\n";
 		std::cerr << "  " << argv[0] << " 8    - Проверка гипотез о распределении\n";
+		std::cerr << "  " << argv[0] << " 9    - Оценка параметров распределений по выборке\n";
 		return -1;
 	}
 
@@ -1475,9 +1743,11 @@ int main(int argc, char** argv) {
 		demonstrateTask7();
 	} else if (taskNumber == "8") {
 		demonstrateTask8();
+	} else if (taskNumber == "9") {
+		demonstrateTask9();
 	} else {
 		std::cerr << "Неизвестный номер задания: " << taskNumber << "\n";
-		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4, 5, 6, 7, 8\n";
+		std::cerr << "Доступные задания: 1.1, 1.2, 2, 3, 4, 5, 6, 7, 8, 9\n";
 		return -1;
 	}
 

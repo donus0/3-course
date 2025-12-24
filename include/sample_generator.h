@@ -129,5 +129,83 @@ HypothesisTestResult testDoublePoissonDistribution(const Sample& sample, double 
 // p1, p2, q - параметры распределения (должны быть заданы)
 HypothesisTestResult testDoubleGeometricDistribution(const Sample& sample, double p1, double p2, double q, double significanceLevel = 0.05);
 
+// ============================================================================
+// Задание 9: Оценка параметров распределений по выборке
+// ============================================================================
+
+// Структура для хранения оцененных параметров нормального распределения
+struct NormalDistributionParams {
+	double mean;      // μ - математическое ожидание
+	double stddev;    // σ - среднеквадратическое отклонение
+	
+	std::string toString() const;
+};
+
+// Структура для хранения оцененных параметров пуассоновского распределения
+struct PoissonDistributionParams {
+	double lambda;   // λ - параметр распределения
+	
+	std::string toString() const;
+};
+
+// Структура для хранения оцененных параметров геометрического распределения
+struct GeometricDistributionParams {
+	double p;        // p - вероятность успеха
+	
+	std::string toString() const;
+};
+
+// Структура для хранения оцененных параметров гипергеометрического распределения
+struct HypergeometricDistributionParams {
+	int N;           // Размер генеральной совокупности
+	int K;           // Количество успешных элементов
+	int n;           // Размер выборки
+	
+	std::string toString() const;
+};
+
+// Структура для хранения оцененных параметров двойного пуассоновского распределения
+struct DoublePoissonDistributionParams {
+	double lambda1;  // λ1 - параметр первого распределения
+	double lambda2;  // λ2 - параметр второго распределения
+	double p;        // p - вероятность выбора первого распределения
+	
+	std::string toString() const;
+};
+
+// Структура для хранения оцененных параметров двойного геометрического распределения
+struct DoubleGeometricDistributionParams {
+	double p1;       // p1 - вероятность успеха первого распределения
+	double p2;       // p2 - вероятность успеха второго распределения
+	double q;        // q - вероятность выбора первого распределения
+	
+	std::string toString() const;
+};
+
+// Оценка параметров нормального распределения по выборке
+// Использует выборочное среднее и исправленное СКО
+NormalDistributionParams estimateNormalDistribution(const Sample& sample);
+
+// Оценка параметров пуассоновского распределения по выборке
+// Использует метод моментов: λ = выборочное среднее
+PoissonDistributionParams estimatePoissonDistribution(const Sample& sample);
+
+// Оценка параметров геометрического распределения по выборке
+// Использует метод моментов: p = 1/(1 + выборочное среднее)
+GeometricDistributionParams estimateGeometricDistribution(const Sample& sample);
+
+// Оценка параметров гипергеометрического распределения по выборке
+// Использует метод моментов (приближенная оценка)
+// Примечание: для точной оценки требуется дополнительная информация
+HypergeometricDistributionParams estimateHypergeometricDistribution(const Sample& sample);
+
+// Оценка параметров двойного пуассоновского распределения по выборке
+// Использует метод моментов и метод максимального правдоподобия
+DoublePoissonDistributionParams estimateDoublePoissonDistribution(const Sample& sample);
+
+// Оценка параметров двойного геометрического распределения по выборке
+// Использует метод моментов и метод максимального правдоподобия
+DoubleGeometricDistributionParams estimateDoubleGeometricDistribution(const Sample& sample);
+
 #endif
 

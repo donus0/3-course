@@ -908,3 +908,294 @@ HypothesisTestResult testDoubleGeometricDistribution(const Sample& sample, doubl
 	
 	return result;
 }
+
+// ============================================================================
+// Задание 9: Реализация функций оценки параметров распределений
+// ============================================================================
+
+// Преобразование параметров нормального распределения в строку
+std::string NormalDistributionParams::toString() const {
+	std::ostringstream oss;
+	oss << "Нормальное распределение:\n";
+	oss << "  μ (математическое ожидание) = " << std::fixed << std::setprecision(10) << mean << "\n";
+	oss << "  σ (среднеквадратическое отклонение) = " << stddev << "\n";
+	return oss.str();
+}
+
+// Преобразование параметров пуассоновского распределения в строку
+std::string PoissonDistributionParams::toString() const {
+	std::ostringstream oss;
+	oss << "Пуассоновское распределение:\n";
+	oss << "  λ (параметр) = " << std::fixed << std::setprecision(10) << lambda << "\n";
+	return oss.str();
+}
+
+// Преобразование параметров геометрического распределения в строку
+std::string GeometricDistributionParams::toString() const {
+	std::ostringstream oss;
+	oss << "Геометрическое распределение:\n";
+	oss << "  p (вероятность успеха) = " << std::fixed << std::setprecision(10) << p << "\n";
+	return oss.str();
+}
+
+// Преобразование параметров гипергеометрического распределения в строку
+std::string HypergeometricDistributionParams::toString() const {
+	std::ostringstream oss;
+	oss << "Гипергеометрическое распределение:\n";
+	oss << "  N (размер генеральной совокупности) = " << N << "\n";
+	oss << "  K (количество успешных элементов) = " << K << "\n";
+	oss << "  n (размер выборки) = " << n << "\n";
+	return oss.str();
+}
+
+// Преобразование параметров двойного пуассоновского распределения в строку
+std::string DoublePoissonDistributionParams::toString() const {
+	std::ostringstream oss;
+	oss << "Двойное пуассоновское распределение:\n";
+	oss << "  λ1 (параметр первого распределения) = " << std::fixed << std::setprecision(10) << lambda1 << "\n";
+	oss << "  λ2 (параметр второго распределения) = " << lambda2 << "\n";
+	oss << "  p (вероятность выбора первого распределения) = " << p << "\n";
+	return oss.str();
+}
+
+// Преобразование параметров двойного геометрического распределения в строку
+std::string DoubleGeometricDistributionParams::toString() const {
+	std::ostringstream oss;
+	oss << "Двойное геометрическое распределение:\n";
+	oss << "  p1 (вероятность успеха первого распределения) = " << std::fixed << std::setprecision(10) << p1 << "\n";
+	oss << "  p2 (вероятность успеха второго распределения) = " << p2 << "\n";
+	oss << "  q (вероятность выбора первого распределения) = " << q << "\n";
+	return oss.str();
+}
+
+// Оценка параметров нормального распределения по выборке
+NormalDistributionParams estimateNormalDistribution(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя оценить параметры для пустой выборки");
+	}
+	
+	NormalDistributionParams params;
+	params.mean = sampleMean(sample);
+	params.stddev = correctedStandardDeviation(sample);
+	
+	// Если стандартное отклонение равно нулю, устанавливаем минимальное значение
+	if (params.stddev <= 0) {
+		params.stddev = 1e-10;
+	}
+	
+	return params;
+}
+
+// Оценка параметров пуассоновского распределения по выборке
+PoissonDistributionParams estimatePoissonDistribution(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя оценить параметры для пустой выборки");
+	}
+	
+	PoissonDistributionParams params;
+	// Метод моментов: λ = E[X] = выборочное среднее
+	params.lambda = sampleMean(sample);
+	
+	if (params.lambda <= 0) {
+		throw std::runtime_error("Оценка параметра lambda должна быть положительной");
+	}
+	
+	return params;
+}
+
+// Оценка параметров геометрического распределения по выборке
+GeometricDistributionParams estimateGeometricDistribution(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя оценить параметры для пустой выборки");
+	}
+	
+	GeometricDistributionParams params;
+	// Для геометрического распределения: E[X] = (1-p)/p
+	// Отсюда: p = 1/(1 + E[X])
+	double mean = sampleMean(sample);
+	params.p = 1.0 / (1.0 + mean);
+	
+	if (params.p <= 0 || params.p > 1) {
+		throw std::runtime_error("Оценка параметра p некорректна");
+	}
+	
+	return params;
+}
+
+// Оценка параметров гипергеометрического распределения по выборке
+HypergeometricDistributionParams estimateHypergeometricDistribution(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя оценить параметры для пустой выборки");
+	}
+	
+	HypergeometricDistributionParams params;
+	
+	// Для гипергеометрического распределения:
+	// E[X] = n * K / N
+	// Var[X] = n * (K/N) * (1 - K/N) * (N-n)/(N-1)
+	
+	double mean = sampleMean(sample);
+	double variance = correctedVariance(sample);
+	
+	// Находим максимальное значение в выборке (это может быть n)
+	int maxValue = static_cast<int>(sample.data[0].first);
+	for (const auto& pair : sample.data) {
+		int val = static_cast<int>(pair.first);
+		if (val > maxValue) maxValue = val;
+	}
+	
+	// Приближенная оценка: предполагаем, что n (размер выборки) примерно равен maxValue + 1
+	// или используем эвристику
+	params.n = std::max(1, maxValue + 1);
+	
+	// Из E[X] = n * K / N получаем K/N = E[X] / n
+	double ratio = mean / params.n;
+	
+	// Оцениваем N из дисперсии
+	// Var[X] ≈ n * ratio * (1 - ratio) * (N-n)/(N-1)
+	// Для больших N: Var[X] ≈ n * ratio * (1 - ratio)
+	// Если дисперсия известна, можно оценить N
+	
+	// Упрощенная оценка: используем эвристику
+	// Предполагаем, что N достаточно большое
+	params.N = std::max(params.n * 2, static_cast<int>(params.n / ratio + 1));
+	params.K = static_cast<int>(params.N * ratio + 0.5);
+	
+	// Ограничиваем значения
+	if (params.K < 0) params.K = 0;
+	if (params.K > params.N) params.K = params.N;
+	if (params.n > params.N) params.n = params.N;
+	
+	return params;
+}
+
+// Оценка параметров двойного пуассоновского распределения по выборке
+DoublePoissonDistributionParams estimateDoublePoissonDistribution(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя оценить параметры для пустой выборки");
+	}
+	
+	DoublePoissonDistributionParams params;
+	
+	// Для двойного пуассоновского распределения:
+	// E[X] = p * λ1 + (1-p) * λ2
+	// E[X²] = p * (λ1 + λ1²) + (1-p) * (λ2 + λ2²)
+	
+	double mean = sampleMean(sample);
+	
+	// Вычисляем второй момент
+	double secondMoment = 0.0;
+	for (const auto& pair : sample.data) {
+		double val = pair.first;
+		secondMoment += pair.second * val * val;
+	}
+	secondMoment /= n;
+	
+	double variance = correctedVariance(sample);
+	
+	// Упрощенный метод: используем метод моментов
+	// Предполагаем, что λ1 < λ2, и оцениваем их через моменты
+	
+	// Если дисперсия большая, возможно два распределения сильно различаются
+	// Используем эвристику: разделяем выборку на две части
+	
+	// Находим медиану для разделения
+	std::vector<double> values = sample.getValues();
+	std::sort(values.begin(), values.end());
+	double median = values[values.size() / 2];
+	
+	// Оцениваем параметры для двух частей
+	double sum1 = 0.0, count1 = 0.0;
+	double sum2 = 0.0, count2 = 0.0;
+	
+	for (const auto& pair : sample.data) {
+		if (pair.first <= median) {
+			sum1 += pair.first * pair.second;
+			count1 += pair.second;
+		} else {
+			sum2 += pair.first * pair.second;
+			count2 += pair.second;
+		}
+	}
+	
+	if (count1 > 0 && count2 > 0) {
+		params.lambda1 = sum1 / count1;
+		params.lambda2 = sum2 / count2;
+		params.p = count1 / n;
+	} else {
+		// Если не удалось разделить, используем упрощенную оценку
+		params.lambda1 = mean * 0.7;
+		params.lambda2 = mean * 1.3;
+		params.p = 0.5;
+	}
+	
+	// Ограничиваем значения
+	if (params.lambda1 <= 0) params.lambda1 = 0.1;
+	if (params.lambda2 <= 0) params.lambda2 = 0.1;
+	if (params.p < 0) params.p = 0;
+	if (params.p > 1) params.p = 1;
+	
+	return params;
+}
+
+// Оценка параметров двойного геометрического распределения по выборке
+DoubleGeometricDistributionParams estimateDoubleGeometricDistribution(const Sample& sample) {
+	int n = sample.getTotalSize();
+	if (n == 0) {
+		throw std::runtime_error("Нельзя оценить параметры для пустой выборки");
+	}
+	
+	DoubleGeometricDistributionParams params;
+	
+	// Для двойного геометрического распределения:
+	// E[X] = q * (1-p1)/p1 + (1-q) * (1-p2)/p2
+	
+	double mean = sampleMean(sample);
+	
+	// Находим медиану для разделения выборки
+	std::vector<double> values = sample.getValues();
+	std::sort(values.begin(), values.end());
+	double median = values[values.size() / 2];
+	
+	// Оцениваем параметры для двух частей
+	double sum1 = 0.0, count1 = 0.0;
+	double sum2 = 0.0, count2 = 0.0;
+	
+	for (const auto& pair : sample.data) {
+		if (pair.first <= median) {
+			sum1 += pair.first * pair.second;
+			count1 += pair.second;
+		} else {
+			sum2 += pair.first * pair.second;
+			count2 += pair.second;
+		}
+	}
+	
+	if (count1 > 0 && count2 > 0) {
+		double mean1 = sum1 / count1;
+		double mean2 = sum2 / count2;
+		
+		// Для геометрического: E[X] = (1-p)/p, отсюда p = 1/(1+E[X])
+		params.p1 = 1.0 / (1.0 + mean1);
+		params.p2 = 1.0 / (1.0 + mean2);
+		params.q = count1 / n;
+	} else {
+		// Упрощенная оценка
+		params.p1 = 0.3;
+		params.p2 = 0.5;
+		params.q = 0.5;
+	}
+	
+	// Ограничиваем значения
+	if (params.p1 <= 0 || params.p1 > 1) params.p1 = 0.3;
+	if (params.p2 <= 0 || params.p2 > 1) params.p2 = 0.5;
+	if (params.q < 0) params.q = 0;
+	if (params.q > 1) params.q = 1;
+	
+	return params;
+}
