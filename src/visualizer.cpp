@@ -173,35 +173,30 @@ void Visualizer::drawPolyline() {
 void Visualizer::drawCDF() {
     auto cdf = rv.getCDF();
     if (cdf.empty()) return;
-    
+
     auto valueRange = getValueRange();
     double minVal = valueRange.first;
     double maxVal = valueRange.second;
-    
+
     glColor3f(0.2f, 0.6f, 0.2f);
     glLineWidth(2.0f);
-    
+
     glBegin(GL_LINE_STRIP);
-    glVertex2f(0.0f, 0.0f);
-    
-    double prevX = 0.0;
-    double prevY = 0.0;
-    
-    for (size_t i = 0; i < cdf.size(); ++i) {
+
+    double prevX = (cdf[0].first - minVal) / (maxVal - minVal) * 0.8 + 0.1;
+    double prevY = cdf[0].second * 0.8;
+    glVertex2f(prevX, prevY);
+
+    for (size_t i = 1; i < cdf.size(); ++i) {
         double x = (cdf[i].first - minVal) / (maxVal - minVal) * 0.8 + 0.1;
         double y = cdf[i].second * 0.8;
-        
-        // Горизонтальная линия до текущей точки
-        if (i > 0) {
-            glVertex2f(x, prevY);
-        }
-        
+
+        glVertex2f(x, prevY);
         glVertex2f(x, y);
         prevX = x;
         prevY = y;
     }
-    
-    glVertex2f(1.0f, 1.0f);
+
     glEnd();
 }
 
