@@ -111,6 +111,50 @@
       "command": "${workspaceFolder}/build/task5/task5/task5.exe",
       "dependsOn": "cmake: build (task5)",
       "problemMatcher": []
+    },
+    {
+      "label": "cmake: configure (task6)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build/task6", "-G", "MinGW Makefiles", "-DCMAKE_BUILD_TYPE=Debug"],
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake: build (task6)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build/task6", "-j"],
+      "dependsOn": "cmake: configure (task6)",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "run: task6",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/task6/task6/task6.exe",
+      "dependsOn": "cmake: build (task6)",
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake: configure (task7)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build/task7", "-G", "MinGW Makefiles", "-DCMAKE_BUILD_TYPE=Debug"],
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake: build (task7)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build/task7", "-j"],
+      "dependsOn": "cmake: configure (task7)",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "run: task7",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/task7/task7/task7.exe",
+      "dependsOn": "cmake: build (task7)",
+      "problemMatcher": []
     }
   ]
 }
