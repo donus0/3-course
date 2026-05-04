@@ -9,10 +9,7 @@
 #include <utility>
 #include <vector>
 
-// Count-Min Sketch: вероятностная структура для оценки частоты (количества вхождений).
-// Гарантии (при неотрицательных добавлениях):
-// - недооценки нет (estimate(x) >= true_count(x))
-// - возможна переоценка из-за коллизий; ответ = min по строкам
+
 template <class Key>
 class CountMinSketch {
 public:

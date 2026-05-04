@@ -5,14 +5,7 @@
 #include <utility>
 #include <vector>
 
-// Fenwick Tree (Binary Indexed Tree).
-//
-// Важно: запрос на произвольном отрезке [l..r] через Fenwick требует обратимости операции:
-// fold(l,r) = op(prefix(r), inv(prefix(l-1))).
-// Поэтому помимо ассоциативной операции op и нейтрального элемента id
-// задаётся inv(x) — "обратный" элемент (для суммы это отрицание).
-//
-// Обычно предполагается коммутативная группа (op ассоциативна + коммутативна и имеет обратный элемент).
+
 template <class T, class Op, class Inv>
 class FenwickTree {
 public:
