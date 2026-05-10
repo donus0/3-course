@@ -34,6 +34,7 @@
 
 # Executables
 *.exe
+*.exe~
 *.out
 *.app
 
@@ -42,8 +43,27 @@
 
 build/
 
-#ml
+# ml / python
 /.venv
 __pycache__/
 models/*.h5
 dogs-vs-cats/
+
+# Go — https://github.com/github/gitignore/blob/main/Go.gitignore
+*.dll
+*.so
+*.dylib
+*.test
+coverage.*
+*.coverprofile
+profile.cov
+# vendor/
+go.work
+go.work.sum
+
+# env file
+.env
+
+# Editor/IDE
+# .idea/
+# .vscode/
