@@ -1,8 +1,0 @@
-{
-  // CMake Tools: заставляем использовать MSYS2/MinGW генератор (без nmake/MSVC)
-  "cmake.generator": "MinGW Makefiles",
-  "cmake.buildDirectory": "${workspaceFolder}/build/task1",
-  "cmake.configureOnOpen": false,
-  "cmake.preferredGenerators": ["MinGW Makefiles"]
-}
-
