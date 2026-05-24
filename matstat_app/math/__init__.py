@@ -13,6 +13,7 @@ from matstat_app.math.compute import (
     variance_test_sigma2,
 )
 from matstat_app.math.dataset import DEFAULT_DATASET_TEXT
+from matstat_app.math import vismad
 
 __all__ = [
     "AnalysisResult",

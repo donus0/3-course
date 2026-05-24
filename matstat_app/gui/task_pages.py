@@ -67,17 +67,17 @@ class TaskPage(QWidget):
         self._scroll.setWidget(self._inner)
         root.addWidget(self._scroll, stretch=1)
 
-        btn = QPushButton("В главное меню")
-        btn.clicked.connect(main_window._to_main_menu)
+        btn = QPushButton("В меню ЛР №1")
+        btn.clicked.connect(main_window._to_lr1_menu)
         root.addWidget(btn)
 
         self._set_title()
 
     def _set_title(self) -> None:
-        from matstat_app.gui.main_window import TASK_TITLES
+        from matstat_app.gui.main_window import LR1_TASK_TITLES
 
-        t = TASK_TITLES.get(self._task_num, "")
-        self._head.setText(f"<h3>Задание {self._task_num}</h3><p>{t}</p>")
+        t = LR1_TASK_TITLES.get(self._task_num, "")
+        self._head.setText(f"<h3>ЛР №1 — задание {self._task_num}</h3><p>{t}</p>")
 
     def refresh(self) -> None:
         _clear_layout(self._inner_layout)

@@ -1,4 +1,4 @@
-"""Главное окно: главное меню, датасет (N, ε), страницы заданий 1–11."""
+"""Главное окно: выбор ЛР, меню ЛР №1 (матстат) и ЛР №2 (ВиСМАД)."""
 
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
 )
 
 from matstat_app.gui.task_pages import TaskPage
+from matstat_app.gui.vismad_task_pages import VISmad_TASK_TITLES, VismadTaskPage
 from matstat_app.math.compute import AnalysisResult, analyze, build_sample_array, parse_rows
 from matstat_app.math.dataset import DEFAULT_DATASET_TEXT
 
@@ -34,7 +35,7 @@ def _rows_to_table_model(rows: Sequence[Sequence[float]]) -> tuple[int, int, Lis
     return len(rows), ncol, [list(r) for r in rows]
 
 
-TASK_TITLES: dict[int, str] = {
+LR1_TASK_TITLES: dict[int, str] = {
     1: "Выборка: 10 строк с N-й",
     2: "min, max, размах R",
     3: "Число интервалов k",
@@ -48,15 +49,23 @@ TASK_TITLES: dict[int, str] = {
     11: "Гипотеза μ = 0 (α = 0,05)",
 }
 
+# Алиас для task_pages
+TASK_TITLES = LR1_TASK_TITLES
+
 
 class MatstatMainWindow(QMainWindow):
-    IDX_MENU = 0
-    IDX_DATASET = 1
-    IDX_TASK_FIRST = 2
+    IDX_ROOT = 0
+    IDX_LR1_MENU = 1
+    IDX_DATASET = 2
+    IDX_LR1_TASK_FIRST = 3
+    NUM_LR1_TASKS = 11
+    IDX_LR2_MENU = 3 + NUM_LR1_TASKS  # 14
+    IDX_LR2_TASK_FIRST = IDX_LR2_MENU + 1  # 15
+    NUM_LR2_TASKS = 7
 
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("MATSTAT")
+        self.setWindowTitle("ВиСМАД — лабораторные работы")
         self.resize(1024, 600)
 
         self._rows: List[List[float]] = []
@@ -65,12 +74,16 @@ class MatstatMainWindow(QMainWindow):
         self._stack = QStackedWidget()
         self.setCentralWidget(self._stack)
 
-        self._stack.addWidget(self._build_main_menu())
+        self._stack.addWidget(self._build_root_menu())
+        self._stack.addWidget(self._build_lr1_menu())
         self._stack.addWidget(self._build_dataset_page())
-        for i in range(1, 12):
+        for i in range(1, self.NUM_LR1_TASKS + 1):
             self._stack.addWidget(TaskPage(i, self))
+        self._stack.addWidget(self._build_lr2_menu())
+        for i in range(1, self.NUM_LR2_TASKS + 1):
+            self._stack.addWidget(VismadTaskPage(i, self))
 
-        self._stack.setCurrentIndex(self.IDX_MENU)
+        self._stack.setCurrentIndex(self.IDX_ROOT)
 
     def _eps_decimals(self) -> int:
         return int(self.spin_eps.value())
@@ -84,11 +97,24 @@ class MatstatMainWindow(QMainWindow):
         except ValueError:
             return None
 
-    def _build_main_menu(self) -> QWidget:
+    def _menu_button(self, text: str, slot, layout: QVBoxLayout, large: bool = False) -> QPushButton:
+        btn = QPushButton(text)
+        btn.clicked.connect(slot)
+        if large:
+            f = QFont(btn.font())
+            ps = f.pointSize()
+            if ps <= 0:
+                ps = self.font().pointSize() if self.font().pointSize() > 0 else 9
+            f.setPointSize(ps * 2)
+            btn.setFont(f)
+            btn.setMinimumHeight(btn.sizeHint().height() * 2)
+        layout.addWidget(btn)
+        return btn
+
+    def _build_scrolled_menu(self, title_html: str, buttons: list[tuple[str, object, bool]]) -> QWidget:
         page = QWidget()
         outer = QVBoxLayout(page)
-
-        title = QLabel("<h2>Главное меню</h2>")
+        title = QLabel(title_html)
         title.setTextFormat(Qt.TextFormat.RichText)
         outer.addWidget(title)
 
@@ -96,43 +122,85 @@ class MatstatMainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         inner = QWidget()
         menu_layout = QVBoxLayout(inner)
-
-        ref_btn = QPushButton("1.", inner)
-        ref_btn.hide()
-        base_h = ref_btn.sizeHint().height()
-
-        btn_data = QPushButton("Исходный датасет и параметр N")
-        btn_data.clicked.connect(self._open_dataset_page)
-        f_data = QFont(btn_data.font())
-        ps = f_data.pointSize()
-        if ps <= 0:
-            ps = self.font().pointSize() if self.font().pointSize() > 0 else 9
-        f_data.setPointSize(ps * 2)
-        btn_data.setFont(f_data)
-        btn_data.setMinimumHeight(max(base_h * 2, btn_data.sizeHint().height()))
-        menu_layout.addWidget(btn_data)
-
-        for i in range(1, 12):
-            t = TASK_TITLES[i]
-            btn = QPushButton(f"{i}. {t}")
-            btn.clicked.connect(partial(self._go_task, i))
-            menu_layout.addWidget(btn)
-
+        for text, slot, large in buttons:
+            self._menu_button(text, slot, menu_layout, large=large)
         menu_layout.addStretch()
         scroll.setWidget(inner)
         outer.addWidget(scroll, stretch=1)
+        return page
 
+    def _build_root_menu(self) -> QWidget:
+        page = QWidget()
+        outer = QVBoxLayout(page)
+        title = QLabel(
+            "<h2>Вероятностные и стохастические модели анализа данных</h2>"
+            "<p>Выберите лабораторную работу:</p>"
+        )
+        title.setTextFormat(Qt.TextFormat.RichText)
+        title.setWordWrap(True)
+        outer.addWidget(title)
+
+        self._menu_button(
+            "Лабораторная работа №1\n(математическая статистика)",
+            self._to_lr1_menu,
+            outer,
+            large=True,
+        )
+        self._menu_button(
+            "Лабораторная работа №2\n(ВиСМАД — Р1)",
+            self._to_lr2_menu,
+            outer,
+            large=True,
+        )
+        outer.addStretch()
         btn_quit = QPushButton("Выход из приложения")
         btn_quit.clicked.connect(self.close)
         outer.addWidget(btn_quit)
-
         return page
+
+    def _build_lr1_menu(self) -> QWidget:
+        buttons: list[tuple[str, object, bool]] = [
+            ("Исходный датасет и параметр N", self._open_dataset_page, True),
+        ]
+        for i in range(1, self.NUM_LR1_TASKS + 1):
+            t = LR1_TASK_TITLES[i]
+            buttons.append((f"{i}. {t}", partial(self._go_lr1_task, i), False))
+        page = self._build_scrolled_menu("<h2>ЛР №1 — математическая статистика</h2>", buttons)
+        wrap = QWidget()
+        lay = QVBoxLayout(wrap)
+        lay.addWidget(page)
+        row = QHBoxLayout()
+        btn_back = QPushButton("← К выбору лабораторной")
+        btn_back.clicked.connect(self._to_root_menu)
+        row.addWidget(btn_back)
+        row.addStretch()
+        lay.addLayout(row)
+        return wrap
+
+    def _build_lr2_menu(self) -> QWidget:
+        buttons = [
+            (f"{i}. {VISmad_TASK_TITLES[i]}", partial(self._go_lr2_task, i), False)
+            for i in range(1, self.NUM_LR2_TASKS + 1)
+        ]
+        page = self._build_scrolled_menu(
+            "<h2>ЛР №2 — ВиСМАД (задания по Р1)</h2>", buttons
+        )
+        wrap = QWidget()
+        lay = QVBoxLayout(wrap)
+        lay.addWidget(page)
+        row = QHBoxLayout()
+        btn_back = QPushButton("← К выбору лабораторной")
+        btn_back.clicked.connect(self._to_root_menu)
+        row.addWidget(btn_back)
+        row.addStretch()
+        lay.addLayout(row)
+        return wrap
 
     def _build_dataset_page(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
 
-        h = QLabel("<h3>Исходный датасет</h3>")
+        h = QLabel("<h3>ЛР №1 — исходный датасет</h3>")
         h.setTextFormat(Qt.TextFormat.RichText)
         layout.addWidget(h)
         t = QLabel(
@@ -172,21 +240,31 @@ class MatstatMainWindow(QMainWindow):
         layout.addWidget(self.table, stretch=1)
 
         row_back = QHBoxLayout()
-        btn_back = QPushButton("В главное меню")
-        btn_back.clicked.connect(self._to_main_menu)
+        btn_back = QPushButton("В меню ЛР №1")
+        btn_back.clicked.connect(self._to_lr1_menu)
         row_back.addWidget(btn_back)
         row_back.addStretch()
         layout.addLayout(row_back)
 
         return page
 
-    def _task_page_index(self, task_num: int) -> int:
-        return self.IDX_TASK_FIRST + (task_num - 1)
+    def _lr1_task_index(self, task_num: int) -> int:
+        return self.IDX_LR1_TASK_FIRST + (task_num - 1)
 
-    def _go_task(self, task_num: int) -> None:
-        idx = self._task_page_index(task_num)
+    def _lr2_task_index(self, task_num: int) -> int:
+        return self.IDX_LR2_TASK_FIRST + (task_num - 1)
+
+    def _go_lr1_task(self, task_num: int) -> None:
+        idx = self._lr1_task_index(task_num)
         w = self._stack.widget(idx)
         if isinstance(w, TaskPage):
+            w.refresh()
+        self._stack.setCurrentIndex(idx)
+
+    def _go_lr2_task(self, task_num: int) -> None:
+        idx = self._lr2_task_index(task_num)
+        w = self._stack.widget(idx)
+        if isinstance(w, VismadTaskPage):
             w.refresh()
         self._stack.setCurrentIndex(idx)
 
@@ -198,8 +276,18 @@ class MatstatMainWindow(QMainWindow):
             self._refresh_n_label()
         self._stack.setCurrentIndex(self.IDX_DATASET)
 
+    def _to_root_menu(self) -> None:
+        self._stack.setCurrentIndex(self.IDX_ROOT)
+
+    def _to_lr1_menu(self) -> None:
+        self._stack.setCurrentIndex(self.IDX_LR1_MENU)
+
+    def _to_lr2_menu(self) -> None:
+        self._stack.setCurrentIndex(self.IDX_LR2_MENU)
+
     def _to_main_menu(self) -> None:
-        self._stack.setCurrentIndex(self.IDX_MENU)
+        """Совместимость: старый вызов → меню ЛР №1."""
+        self._to_lr1_menu()
 
     def _apply_n_from_dataset_page(self) -> None:
         self._n_start = int(self.spin_n.value())
@@ -223,7 +311,6 @@ class MatstatMainWindow(QMainWindow):
             f"Порядок 10 строк: <b>{tail}</b>. "
             f"ε для h: <b>{self._eps_decimals()}</b> знаков."
         )
-            
 
     def _load_default_dataset(self) -> None:
         try:
