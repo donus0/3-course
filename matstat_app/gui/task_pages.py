@@ -26,7 +26,7 @@ from matstat_app.math.compute import (
     AnalysisResult,
     chi2_normality_gof,
     mean_test_zero,
-    sample_row_numbers_1based,
+    sample_row_numbers,
     shapiro_wilk_normal_hint,
     variance_test_sigma2,
 )
@@ -119,7 +119,7 @@ class TaskPage(QWidget):
         rows = self._main._rows
         n = self._main._n_start
         r = len(rows)
-        idx = sample_row_numbers_1based(r, n, 10)
+        idx = sample_row_numbers(r, n, 10)
         lines = [
             f"<p>Объём выборки (число значений): <b>{res.n}</b>.</p>",
             "<p>Использованы строки таблицы (по кругу): <b>"

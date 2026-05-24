@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
 )
 
 from matstat_app.gui.task_pages import TaskPage
-from matstat_app.math.compute import AnalysisResult, analyze, parse_rows, select_sample
+from matstat_app.math.compute import AnalysisResult, analyze, build_sample_array, parse_rows
 from matstat_app.math.dataset import DEFAULT_DATASET_TEXT
 
 
@@ -79,7 +79,7 @@ class MatstatMainWindow(QMainWindow):
         if not self._rows:
             return None
         try:
-            x = select_sample(self._rows, self._n_start, 10)
+            x = build_sample_array(self._rows, self._n_start, 10)
             return analyze(x, eps_decimals=self._eps_decimals())
         except ValueError:
             return None
@@ -137,7 +137,7 @@ class MatstatMainWindow(QMainWindow):
         layout.addWidget(h)
         t = QLabel(
             "Здесь задаётся <b>N</b> и точность округления шага <b>h</b> (ε). "
-            "Если N больше числа строк R, старт по правилу остатка (см. подпись ниже)."
+            "Если N больше числа строк R, старт по правилу остатка."
         )
         t.setTextFormat(Qt.TextFormat.RichText)
         t.setWordWrap(True)
@@ -206,7 +206,7 @@ class MatstatMainWindow(QMainWindow):
         self._refresh_n_label()
 
     def _refresh_n_label(self) -> None:
-        from matstat_app.math.compute import effective_start_index0, sample_row_numbers_1based
+        from matstat_app.math.compute import resolve_start_row_index, sample_row_numbers
 
         r = len(self._rows)
         if r == 0:
@@ -214,18 +214,16 @@ class MatstatMainWindow(QMainWindow):
                 f"Текущее N: <b>{self._n_start}</b> — в таблице нет строк данных."
             )
             return
-        nums = sample_row_numbers_1based(r, self._n_start, 10)
+        nums = sample_row_numbers(r, self._n_start, 10)
         tail = ", ".join(str(x) for x in nums)
-        first = effective_start_index0(r, self._n_start) + 1
-        if self._n_start > r:
-            note = f"N больше R — первая строка выборки: <b>{first}</b> (остаток по R)"
-        else:
-            note = f"первая строка выборки: <b>{first}</b>"
+        first = resolve_start_row_index(r, self._n_start) + 1
+        note = f"первая строка выборки: <b>{first}</b>"
         self.lbl_n.setText(
             f"Текущее N: <b>{self._n_start}</b>, R = <b>{r}</b> ({note}). "
             f"Порядок 10 строк: <b>{tail}</b>. "
             f"ε для h: <b>{self._eps_decimals()}</b> знаков."
         )
+            
 
     def _load_default_dataset(self) -> None:
         try:

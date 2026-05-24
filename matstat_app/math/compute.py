@@ -1,5 +1,3 @@
-"""Расчёты математической статистики (без зависимостей от Qt)."""
-
 from __future__ import annotations
 
 import math
@@ -23,11 +21,8 @@ def parse_rows(text: str) -> List[List[float]]:
     return rows
 
 
-def effective_start_index0(rows_count: int, start_row_1based: int) -> int:
-    """
-    Стартовая строка (0-based): при N ≤ R — строка N;
-    при N > R — как у остатка от R в «лишних» номерах: например R=20, N=22 → строка 3 (индекс 2).
-    """
+def resolve_start_row_index(rows_count: int, start_row_1based: int) -> int:
+    """Индекс (с 0) первой строки выборки; при N > R — циклическое правило остатка."""
     if start_row_1based < 1:
         raise ValueError("Номер строки N должен быть ≥ 1")
     if rows_count <= 0:
@@ -38,20 +33,20 @@ def effective_start_index0(rows_count: int, start_row_1based: int) -> int:
     return rows_count - 1 if m == 0 else m
 
 
-def sample_row_numbers_1based(
+def sample_row_numbers(
     rows_count: int, start_row_1based: int, num_rows: int = 10
 ) -> List[int]:
-    """Номера строк (1…R), которые войдут в выборку из num_rows строк с циклическим продолжением."""
-    i0 = effective_start_index0(rows_count, start_row_1based)
+    """Номера строк выборки (с 1), подряд по кругу, всего num_rows."""
+    i0 = resolve_start_row_index(rows_count, start_row_1based)
     return [(i0 + j) % rows_count + 1 for j in range(num_rows)]
 
 
-def select_sample(rows: Sequence[Sequence[float]], start_row_1based: int, num_rows: int = 10) -> np.ndarray:
-    """Берёт ровно num_rows строк по кругу; при N > R старт по правилу N mod R (см. effective_start_index0)."""
+def build_sample_array(rows: Sequence[Sequence[float]], start_row_1based: int, num_rows: int = 10) -> np.ndarray:
+    """Склеивает значения num_rows строк таблицы (с N) в один вектор выборки."""
     r = len(rows)
     if r == 0:
         raise ValueError("Нет строк данных")
-    i0 = effective_start_index0(r, start_row_1based)
+    i0 = resolve_start_row_index(r, start_row_1based)
     chunk = [rows[(i0 + j) % r] for j in range(num_rows)]
     return np.concatenate([np.asarray(row, dtype=float) for row in chunk], axis=0)
 

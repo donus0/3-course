@@ -1,5 +1,3 @@
-"""Математический слой: разбор данных и статистические вычисления."""
-
 from matstat_app.math.compute import (
     AnalysisResult,
     IntervalBin,
@@ -7,11 +5,11 @@ from matstat_app.math.compute import (
     assign_bins,
     build_intervals,
     chi2_normality_gof,
-    effective_start_index0,
+    resolve_start_row_index,
     mean_test_zero,
     parse_rows,
-    sample_row_numbers_1based,
-    select_sample,
+    sample_row_numbers,
+    build_sample_array,
     shapiro_wilk_normal_hint,
     variance_test_sigma2,
 )
@@ -25,11 +23,11 @@ __all__ = [
     "assign_bins",
     "build_intervals",
     "chi2_normality_gof",
-    "effective_start_index0",
+    "resolve_start_row_index",
     "mean_test_zero",
     "parse_rows",
-    "sample_row_numbers_1based",
-    "select_sample",
+    "sample_row_numbers",
+    "build_sample_array",
     "shapiro_wilk_normal_hint",
     "variance_test_sigma2",
 ]
