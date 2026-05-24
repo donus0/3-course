@@ -127,7 +127,8 @@ def step_h(R: float, k: int, eps_decimals: int = 2) -> float:
 #  п. 5: границы α0 … αk 
 
 def interval_bounds(x_min: float, k: int, h: float, x_max: float) -> List[float]:
-    alpha = [x_min + i * h for i in range(k + 1)]
+    alpha0 = x_min - h / 2.0
+    alpha = [alpha0 + i * h for i in range(k + 1)]
     if alpha[-1] < x_max:
         alpha[-1] = x_max
     return alpha
@@ -379,14 +380,3 @@ def mean_test_zero(x, alpha_level: float = 0.05):
     t_stat, p_value = stats.ttest_1samp(data, 0.0)
     reject = p_value < alpha_level
     return float(t_stat), float(p_value), alpha_level, reject
-
-
-# дополнительно для задания 9 (не в ТЗ, но есть в программе)
-
-def shapiro_wilk_normal_hint(x) -> Tuple[float, float, bool]:
-    data = [float(v) for v in np.asarray(x).flat]
-    n = len(data)
-    if n < 3 or n > 5000:
-        return float("nan"), float("nan"), False
-    w, p = stats.shapiro(data)
-    return float(w), float(p), p < 0.05

@@ -27,7 +27,6 @@ from matstat_app.math.compute import (
     chi2_normality_gof,
     mean_test_zero,
     sample_row_numbers,
-    shapiro_wilk_normal_hint,
     variance_test_sigma2,
 )
 
@@ -271,11 +270,6 @@ class TaskPage(QWidget):
             )
         else:
             lines.append("<p>Расчёт χ² недоступен (мало степеней свободы или s = 0).</p>")
-        w, p_sw, _rej_sw = shapiro_wilk_normal_hint(res.x)
-        if np.isfinite(w):
-            lines.append(
-                f"<p>Дополнительно (Шапиро–Уилк): W = {w:.6g}, p = {p_sw:.6g}.</p>"
-            )
         self._inner_layout.addWidget(_label("".join(lines)))
 
     def _fill_task10(self, res: AnalysisResult) -> None:

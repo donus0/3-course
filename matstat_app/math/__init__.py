@@ -10,7 +10,6 @@ from matstat_app.math.compute import (
     parse_rows,
     sample_row_numbers,
     build_sample_array,
-    shapiro_wilk_normal_hint,
     variance_test_sigma2,
 )
 from matstat_app.math.dataset import DEFAULT_DATASET_TEXT
@@ -28,6 +27,5 @@ __all__ = [
     "parse_rows",
     "sample_row_numbers",
     "build_sample_array",
-    "shapiro_wilk_normal_hint",
     "variance_test_sigma2",
 ]
