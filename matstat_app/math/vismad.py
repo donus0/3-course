@@ -25,7 +25,7 @@ def is_prime(n: int) -> bool:
     d = 3
     while d <= r:
         if n % d == 0:
-            return False
+            return False         # нашли делитель — не простое
         d += 2
     return True
 
@@ -45,18 +45,18 @@ def factorize(n: int) -> List[Tuple[int, int]]:
             e = 0
             while x % p == 0:
                 x //= p
-                e += 1
+                e += 1             # сколько раз p входит в n
             factors.append((p, e))
         p = 3 if p == 2 else p + 2
     if x > 1:
-        factors.append((x, 1))
+        factors.append((x, 1))       # остаток > √n — сам простой множитель
     return factors
 
 
 def mod_inverse(a: int, m: int) -> Optional[int]:
     a = int(a) % int(m)
     if m <= 1 or gcd(a, m) != 1:
-        return None
+        return None                  # обратного нет, если не взаимно просты
     return pow(a, -1, int(m))
 
 
@@ -68,7 +68,7 @@ def _distinct_witnesses(n: int, count: int, rng: random.Random) -> List[int]:
         raise ValueError(f"Нужно {count} различных свидетелей из [{lo}, {hi}]")
     pool = list(range(lo, hi + 1))
     rng.shuffle(pool)
-    return sorted(pool[:count])
+    return sorted(pool[:count])      # разные a из [2, n−2]
 
 
 # --- п. 1: φ(n) ---
@@ -80,7 +80,7 @@ def euler_phi_definition(n: int) -> int:
         raise ValueError("n ≥ 1")
     if n == 1:
         return 1
-    return sum(1 for k in range(1, n + 1) if gcd(k, n) == 1)
+    return sum(1 for k in range(1, n + 1) if gcd(k, n) == 1)  # считаем k, взаимно простые с n
 
 
 def euler_phi_factorization(n: int) -> int:
@@ -91,7 +91,7 @@ def euler_phi_factorization(n: int) -> int:
         return 1
     result = n
     for p, _ in factorize(n):
-        result = result // p * (p - 1)
+        result = result // p * (p - 1)                       # φ(n) = n·Π(1 − 1/p) по простым p|n
     return result
 
 
@@ -102,7 +102,7 @@ def euler_phi_dft(n: int) -> float:
         raise ValueError("n ≥ 1")
     s = 0.0
     for k in range(1, n + 1):
-        s += gcd(k, n) * math.cos(2.0 * math.pi * k / n)
+        s += gcd(k, n) * math.cos(2.0 * math.pi * k / n)     # формула через ДПФ из ТЗ
     return s
 
 
@@ -130,7 +130,7 @@ def fermat_test(n: int, witnesses: int, seed: Optional[int] = None) -> Tuple[boo
     for a in ws:
         if pow(a, n - 1, n) != 1:
             details.append(f"a={a}: a^(n-1) mod n ≠ 1 → составное")
-            return False, ws, details
+            return False, ws, details# малая теорема не выполнилась
         details.append(f"a={a}: условие Ферма выполнено")
     return True, ws, details + ["вероятно простое (тест не отверг)"]
 
@@ -145,7 +145,7 @@ def legendre_symbol(a: int, p: int) -> int:
         raise ValueError("p — нечётное простое ≥ 3")
     if a == 0:
         return 0
-    ls = pow(a, (p - 1) // 2, p)
+    ls = pow(a, (p - 1) // 2, p)   # (a/p) ≡ a^((p−1)/2) mod p
     if ls == 1:
         return 1
     if ls == p - 1:
@@ -167,10 +167,10 @@ def jacobi_symbol(a: int, n: int) -> int:
         while a % 2 == 0:
             a //= 2
             if n % 8 in (3, 5):
-                t = -t
+                t = -t             # знак при вынесении двойки
         a, n = n, a
         if a % 4 == 3 and n % 4 == 3:
-            t = -t
+            t = -t                 # квадратичный закон взаимности
         a %= n
     return t if n == 1 else 0
 
@@ -195,7 +195,7 @@ def solovay_strassen_test(
         jac = jacobi_symbol(a, n)
         rhs = pow(a, (n - 1) // 2, n)
         if rhs == n - 1:
-            rhs = -1
+            rhs = -1               # приводим остаток к {−1, 0, 1}
         if jac != rhs:
             details.append(f"a={a}: (a/n)={jac} ≠ a^((n-1)/2) mod n → составное")
             return False, ws, details
@@ -207,13 +207,13 @@ def solovay_strassen_test(
 
 
 def _miller_rabin_witness(a: int, n: int, s: int, d: int) -> bool:
-    x = pow(a, d, n)
+    x = pow(a, d, n)                 # x = a^d mod n, d — нечётная часть n−1
     if x == 1 or x == n - 1:
         return True
     for _ in range(s - 1):
         x = (x * x) % n
         if x == n - 1:
-            return True
+            return True              # нашли нетривиальный корень → не свидетель
     return False
 
 
@@ -230,7 +230,7 @@ def miller_rabin_test(
     s, d = 0, n - 1
     while d % 2 == 0:
         s += 1
-        d //= 2
+        d //= 2                      # n−1 = 2^s · d
     rng = random.Random(seed)
     ws = _distinct_witnesses(n, witnesses, rng)
     details: List[str] = []
@@ -255,10 +255,10 @@ def lcg_period(a: int, b: int, m: int, x0: int = 0) -> int:
     while x not in seen:
         seen[x] = step
         step += 1
-        x = (a * x + b) % m
+        x = (a * x + b) % m        # Xₙ₊₁ = (a·Xₙ + b) mod m
         if step > m:
             return step - seen.get(x, 0)
-    return step - seen[x]
+    return step - seen[x]            # длина цикла до повторения
 
 
 def icg_next_state(a: int, b: int, mod: int, x: int) -> Optional[int]:
@@ -268,11 +268,11 @@ def icg_next_state(a: int, b: int, mod: int, x: int) -> Optional[int]:
     a, b, x = int(a) % mod, int(b) % mod, int(x) % mod
     if is_prime(mod):
         if x == 0:
-            return b % mod
+            return b % mod         # п. 6: m простое, Xₙ = 0
         inv = mod_inverse(x, mod)
         if inv is None:
             return None
-        return (a * inv + b) % mod
+        return (a * inv + b) % mod # Xₙ₊₁ = (a·Xₙ⁻¹ + b) mod m
     if gcd(a, mod) != 1:
         return None
     if x == 0:
@@ -280,7 +280,7 @@ def icg_next_state(a: int, b: int, mod: int, x: int) -> Optional[int]:
     inv = mod_inverse(x, mod)
     if inv is None:
         return None
-    return (a * inv + b) % mod
+    return (a * inv + b) % mod       # m составное, нужен gcd(a,m)=1
 
 
 def icg_period(a: int, b: int, mod: int, x0: int = 1) -> int:
@@ -295,7 +295,7 @@ def icg_period(a: int, b: int, mod: int, x0: int = 1) -> int:
         step += 1
         nx = icg_next_state(a, b, mod, x)
         if nx is None:
-            return step
+            return step              # цепочка оборвалась
         x = nx
         if step > mod * mod:
             return step - seen.get(x, 0)
@@ -303,7 +303,7 @@ def icg_period(a: int, b: int, mod: int, x0: int = 1) -> int:
 
 
 def _is_blum_prime(p: int) -> bool:
-    return is_prime(p) and p % 4 == 3
+    return is_prime(p) and p % 4 == 3# для BBS: p ≡ 3 (mod 4)
 
 
 def bbs_period(p: int, q: int, x0: int) -> int:
@@ -319,7 +319,7 @@ def bbs_period(p: int, q: int, x0: int) -> int:
     while x not in seen:
         seen[x] = step
         step += 1
-        x = (x * x) % M
+        x = (x * x) % M              # Xₙ₊₁ = Xₙ² mod M
         if step > M:
             return step - seen.get(x, 0)
     return step - seen[x]
@@ -336,11 +336,11 @@ def sample_periods_lcg(
         m = rng.randint(2, cap - 1) if cap > 2 else 2
         a = rng.randint(0, cap - 1)
         b = rng.randint(0, cap - 1)
-        periods.append(lcg_period(a, b, m, 0))
+        periods.append(lcg_period(a, b, m, 0))                 # один опыт — один период Pᵢ
     if len(periods) < 2:
         return periods, 0.0
     mean = sum(periods) / len(periods)
-    var = sum((t - mean) ** 2 for t in periods) / (len(periods) - 1)
+    var = sum((t - mean) ** 2 for t in periods) / (len(periods) - 1)  # D(P) по серии
     return periods, var
 
 
