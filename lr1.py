@@ -1,5 +1,5 @@
 """
-ЛБ1: численное решение задачи Коши y' = f(t, y) методом Эйлера.
+ЛР1: численное решение задачи Коши y' = f(t, y) методом Эйлера.
 Модель: y' = 0.25*y, y(0) = 80, 0 <= t <= 8.
 """
 
@@ -10,7 +10,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-OUTPUT_DIR = Path("output/lb1")
+OUTPUT_DIR = Path("output/lr1")
 
 
 def _h_suffix(h: float) -> str:
@@ -133,14 +133,14 @@ def _part1() -> None:
         print(f"  Абсолютная ошибка в T: {abs_err_end:.4e}")
         print_table_edges(t, y_num, y_ex_nodes)
 
-        plot_path = _plot_path(f"lb1_task1_solution_h_{_h_suffix(h)}.png")
+        plot_path = _plot_path(f"lr1_task1_solution_h_{_h_suffix(h)}.png")
         plot_solution_vs_exact(
             t,
             y_num,
             T,
             y0,
             lam,
-            title=f"ЛБ1, задача 1: точное и численное решение (h = {h})",
+            title=f"ЛР1, задача 1: точное и численное решение (h = {h})",
             filepath=plot_path,
         )
         print(f"  График: {plot_path}")
@@ -159,11 +159,11 @@ def _part2() -> None:
         y_ex_nodes = exact_solution(t, y0, lam)
         delta = np.abs(y_num - y_ex_nodes)
 
-        plot_path = _plot_path(f"lb1_task2_error_h_{_h_suffix(h)}.png")
+        plot_path = _plot_path(f"lr1_task2_error_h_{_h_suffix(h)}.png")
         plot_error_vs_time(
             t,
             delta,
-            title=f"ЛБ1, задача 2: абсолютная ошибка по времени (h = {h})",
+            title=f"ЛР1, задача 2: абсолютная ошибка по времени (h = {h})",
             filepath=plot_path,
         )
         print(f"  h = {h}: график {plot_path}")
@@ -206,12 +206,12 @@ def _part3() -> None:
         err_list.append(err_end)
         print(f"{h:8.3f} {N:8d} {err_end:18.4e}")
 
-    plot_path = _plot_path("lb1_task3_error_vs_h.png")
+    plot_path = _plot_path("lr1_task3_error_vs_h.png")
     plt.figure(figsize=(8, 5))
     plt.loglog(hs, err_list, "bo-", markersize=8, linewidth=1.5)
     plt.xlabel("Шаг h")
     plt.ylabel("Ошибка в точке T = 8")
-    plt.title("ЛБ1, задача 3: ошибка в конечной точке vs шаг")
+    plt.title("ЛР1, задача 3: ошибка в конечной точке vs шаг")
     plt.grid(True, which="both", alpha=0.35)
     plt.gca().invert_xaxis()
     plt.tight_layout()
@@ -240,7 +240,7 @@ def _part3() -> None:
 
 
 def run() -> None:
-    """Запуск ЛБ1: задачи 1–3 из «Задачи 1.pdf»."""
+    """Запуск ЛР1: задачи 1–3 из «Задачи 1.pdf»."""
     _part1()
     _part2()
     _part3()
