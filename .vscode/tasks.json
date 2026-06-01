@@ -221,6 +221,28 @@
       "command": "${workspaceFolder}/build/task10/task10/task10.exe",
       "dependsOn": "cmake: build (task10)",
       "problemMatcher": []
+    },
+    {
+      "label": "cmake: configure (task11)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build/task11", "-G", "MinGW Makefiles", "-DCMAKE_BUILD_TYPE=Debug"],
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake: build (task11)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build/task11", "-j"],
+      "dependsOn": "cmake: configure (task11)",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "run: task11",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/task11/task11/task11.exe",
+      "dependsOn": "cmake: build (task11)",
+      "problemMatcher": []
     }
   ]
 }

@@ -16,4 +16,5 @@ add_subdirectory(task7)
 add_subdirectory(task8)
 add_subdirectory(task9)
 add_subdirectory(task10)
+add_subdirectory(task11)
 
